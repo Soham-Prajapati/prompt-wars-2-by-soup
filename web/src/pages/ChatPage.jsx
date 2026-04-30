@@ -262,12 +262,3 @@ export default function ChatPage() {
     </div>
   )
 }
-' }}>
-              {loading ? '...' : <><Send size={18} /> SEND</>}
-            </button>
-          </div>
-        </div>
-      </main>
-    </div>
-  )
-}

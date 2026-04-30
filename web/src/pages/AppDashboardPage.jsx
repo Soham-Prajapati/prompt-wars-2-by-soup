@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { LayoutDashboard, MessageSquare, ShieldCheck, PlayCircle, History, Trophy, FileText, ChevronRight, Star } from 'lucide-react'
+import { LayoutDashboard, MessageSquare, ShieldCheck, PlayCircle, History, Trophy, FileText, ChevronRight, Star, Map } from 'lucide-react'
 
 const CORE_MODULES = [
   {
@@ -30,6 +30,7 @@ const CORE_MODULES = [
 ]
 
 const DATA_MODULES = [
+  { title: 'Interactive Map', to: '/map', icon: <Map size={20} /> },
   { title: 'Election Timeline', to: '/timeline', icon: <History size={20} /> },
   { title: 'Civic Quiz', to: '/quiz', icon: <Trophy size={20} /> },
   { title: 'Jawaab Do', to: '/jawaab-do', icon: <FileText size={20} /> },

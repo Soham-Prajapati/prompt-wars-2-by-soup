@@ -7,6 +7,7 @@ const NAV_ITEMS = [
   { to: '/', label: 'Home' },
   { to: '/app', label: 'Dashboard' },
   { to: '/chat', label: 'Civic Assistant' },
+  { to: '/map', label: 'Election Map' },
   { to: '/fact-check', label: 'Verifier' },
   { to: '/timeline', label: 'Timeline' },
   { to: '/jawaab-do', label: 'Accountability' },
@@ -34,7 +35,7 @@ export default function Navbar() {
           </div>
         </Link>
 
-        <nav className="desktop-nav" style={{ display: 'flex', gap: '4px' }}>
+        <nav className="desktop-nav" style={{ gap: '4px' }}>
           {NAV_ITEMS.map(item => (
             <NavLink
               key={item.to}

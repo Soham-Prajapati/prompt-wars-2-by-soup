@@ -11,6 +11,7 @@ import LearnHubPage from './pages/LearnHubPage'
 import AppDashboardPage from './pages/AppDashboardPage'
 import ConstituencyDetailPage from './pages/ConstituencyDetailPage'
 import CandidateComparePage from './pages/CandidateComparePage'
+import MapPage from './pages/MapPage'
 import Navbar from './components/layout/Navbar'
 import Footer from './components/layout/Footer'
 
@@ -31,6 +32,7 @@ export default function App() {
               <Route path="/fact-check" element={<FactCheckPage />} />
               <Route path="/evm-simulator" element={<EvmPage />} />
               <Route path="/timeline" element={<TimelinePage />} />
+              <Route path="/map" element={<MapPage />} />
               <Route path="/quiz" element={<QuizPage />} />
               <Route path="/jawaab-do" element={<JawaabDoPage />} />
               <Route path="/ask" element={<Navigate to="/chat" replace />} />
