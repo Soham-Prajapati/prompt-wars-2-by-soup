@@ -1,0 +1,127 @@
+/* ── ElectIQ Banger UI Design System ── */
+/* Theme: Dark Mode Glassmorphism Premium */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Noto+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+  --saffron:        #FF9933;
+  --saffron-bg:     rgba(255, 153, 51, 0.1);
+  --saffron-border: rgba(255, 153, 51, 0.3);
+  --green:          #1DB954;
+  --green-bg:       rgba(29, 185, 84, 0.1);
+  --navy:           #FFFFFF;
+  --surface-2:      #0B0D14; /* Deep space background */
+  --surface:        #151821;
+  --surface-3:      rgba(255, 255, 255, 0.03);
+  --ink:            #E4E7EB;
+  --ink-mid:        #B0B7C3;
+  --ink-light:      #7A849C;
+  --border:         rgba(255, 255, 255, 0.1);
+  --radius:         16px;
+  --transition:     all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --font-body:      'Outfit', sans-serif;
+}
+
+/* ── Global Reset ── */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--font-body);
+  background-color: var(--surface-2);
+  color: var(--ink);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4 { font-weight: 800; letter-spacing: -0.02em; color: #fff; }
+
+/* ── Layout ── */
+.app-shell { min-height: 100vh; display: flex; flex-direction: column; }
+.app-container { max-width: 1200px; margin: 0 auto; width: 100%; padding: 0 20px; }
+
+/* ── Utility Classes (Banger UI) ── */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius);
+}
+
+.hero-gradient {
+  background: linear-gradient(to right, var(--saffron), #fff, var(--green));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.glow-button {
+  background: var(--saffron);
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 15px rgba(232, 119, 34, 0.3);
+  transition: var(--transition);
+  border: none;
+  cursor: pointer;
+}
+
+.glow-button:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(232, 119, 34, 0.5); }
+
+.glow-button-secondary {
+  background: rgba(255,255,255,0.05);
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: var(--transition);
+  cursor: pointer;
+}
+
+.glow-button-secondary:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
+
+/* ── Components ── */
+input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 12px 16px;
+  color: #fff;
+  font-family: inherit;
+  outline: none;
+  transition: var(--transition);
+}
+
+input:focus { border-color: var(--saffron); background: rgba(255, 255, 255, 0.08); }
+
+.pill {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+.feature-card { padding: 32px; transition: var(--transition); }
+.feature-card:hover { border-color: var(--saffron-border); background: rgba(255, 255, 255, 0.05); }
+
+/* ── Animations ── */
+.fade-in { animation: fadeIn 0.4s ease-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── Specific Overrides for "Stock" look ── */
+.app-header { background: rgba(11, 13, 20, 0.8) !important; border-bottom: 1px solid rgba(255,255,255,0.05) !important; }
+.section-title { font-size: 48px; line-height: 1.1; margin-bottom: 16px; }
+.section-subtitle { color: var(--ink-mid); font-size: 18px; max-width: 600px; }

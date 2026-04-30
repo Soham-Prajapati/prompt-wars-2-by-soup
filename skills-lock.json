@@ -1,0 +1,130 @@
+{
+  "version": 1,
+  "skills": {
+    "architect": {
+      "source": "iankiku/forwward-teams",
+      "sourceType": "github",
+      "computedHash": "ddd8c61ce8ba7300d278594aeaf968d67a79593bf32c95b0a8a2cf978797cab6"
+    },
+    "build": {
+      "source": "iankiku/forwward-teams",
+      "sourceType": "github",
+      "computedHash": "9b6a111828a01492d8ba3573f26457076cd9ec54efcdc879380c2104a8b853ce"
+    },
+    "ceo": {
+      "source": "iankiku/forwward-teams",
+      "sourceType": "github",
+      "computedHash": "ad3376edc3fa74ebcb5c8fee938ebc6104d9ca848835ef7f03c3fc1a2e179987"
+    },
+    "cto": {
+      "source": "iankiku/forwward-teams",
+      "sourceType": "github",
+      "computedHash": "8cae54b56c68e4e777c59f27bf9d1ded4c68914d81416cabd605d3cabf204ced"
+    },
+    "data": {
+      "source": "iankiku/forwward-teams",
+      "sourceType": "github",
+      "computedHash": "312337beaaf2c016a54316b7527abfbf05fa16c0ac19dfa8e9ce8875844f72ff"
+    },
+    "design": {
+      "source": "iankiku/forwward-teams",
+      "sourceType": "github",
+      "computedHash": "e455982b61051b7ceed2fff2ee7b162d487995817397993e61c8dfca7cb54852"
+    },
+    "devops": {
+      "source": "iankiku/forwward-teams",
+      "sourceType": "github",
+      "computedHash": "511d5d292b662ee10d66e7bc2cbf344d1c4b473f759059dde71439ed6fdc33c3"
+    },
+    "finance": {
+      "source": "iankiku/forwward-teams",
+      "sourceType": "github",
+      "computedHash": "db60a49a6caa6850009d1aa53278043f25f356f316e8c002a251a0618332d403"
+    },
+    "gate": {
+      "source": "iankiku/forwward-teams",
+      "sourceType": "github",
+      "computedHash": "5ff78aa23b7578dfb5cb6a542d9a2b950315729dcc704a171f372017d8e0041e"
+    },
+    "gtm": {
+      "source": "iankiku/forwward-teams",
+      "sourceType": "github",
+      "computedHash": "37cbeb453c00c099e20e0f8ce9facd0189a946e9df429ddeca574f0af0a7ff75"
+    },
+    "legal": {
+      "source": "iankiku/forwward-teams",
+      "sourceType": "github",
+      "computedHash": "23bf74660b1ffc38205db0598ca6294765f74efc9e4d10e843ad11506c6af073"
+    },
+    "medic": {
+      "source": "iankiku/forwward-teams",
+      "sourceType": "github",
+      "computedHash": "feade1871aa1a005db26173f1bcc518046c0217fefc39a6ffb4556f4b6239c6a"
+    },
+    "onboard": {
+      "source": "iankiku/forwward-teams",
+      "sourceType": "github",
+      "computedHash": "016a239e993973313dc7f294506478c5b0c342ad9abfb1b00aa90879dad8676d"
+    },
+    "pcp-engine": {
+      "source": "iankiku/forwward-teams",
+      "sourceType": "github",
+      "computedHash": "4d02e423532004f9a9c409d184cab18a5bf9ee9705b907ee44b15db55b0ad4e3"
+    },
+    "review": {
+      "source": "iankiku/forwward-teams",
+      "sourceType": "github",
+      "computedHash": "283cc825d4deba4bac472c7f4ca06d899be8747391806f735005233ae5b8704b"
+    },
+    "sales": {
+      "source": "iankiku/forwward-teams",
+      "sourceType": "github",
+      "computedHash": "266568fa6973e281adae6989a8f2161c25a3b23fd92bce0763b2e4750783ca3b"
+    },
+    "security": {
+      "source": "iankiku/forwward-teams",
+      "sourceType": "github",
+      "computedHash": "e1169fa8055adbd26c47158604e200bde973383be48045f6d69ccaf12fbbec90"
+    },
+    "ship": {
+      "source": "iankiku/forwward-teams",
+      "sourceType": "github",
+      "computedHash": "2aa9365146d59f78658410b018defdd5b37c9b221a0a7a2f6f2f7103bf1fefb8"
+    },
+    "start": {
+      "source": "iankiku/forwward-teams",
+      "sourceType": "github",
+      "computedHash": "4ed359a2238653babff0b6cd888b715759df17084ead81609faefc9c7fdf0018"
+    },
+    "strategy": {
+      "source": "iankiku/forwward-teams",
+      "sourceType": "github",
+      "computedHash": "acd879e83fc3a52487668a6b0cafa499c5a38c1dce0ef24ab85b6d278bafc480"
+    },
+    "switch": {
+      "source": "iankiku/forwward-teams",
+      "sourceType": "github",
+      "computedHash": "1c2f33516b5eb67a3e4bfb9f3d60325a92c72506f992bfa9331b9cc90e03ddae"
+    },
+    "team-lead": {
+      "source": "iankiku/forwward-teams",
+      "sourceType": "github",
+      "computedHash": "a9f2a1cf0c028756ffff3cabab3d951563e76455708b27b8f595080c570c5990"
+    },
+    "technical-writer": {
+      "source": "iankiku/forwward-teams",
+      "sourceType": "github",
+      "computedHash": "487820ba3c0f5e2227cd539a9b861ffd925122f8d89f9e004f44a81027e9a2e5"
+    },
+    "voice": {
+      "source": "iankiku/forwward-teams",
+      "sourceType": "github",
+      "computedHash": "0de04a7a4efed91902f30bc692206f1c146fe21021bdb8f430f6acfb6630aea4"
+    },
+    "write": {
+      "source": "iankiku/forwward-teams",
+      "sourceType": "github",
+      "computedHash": "70c80617d8cafba6d763c5b700109462a4ad6390cb5d496101dca4a02668088a"
+    }
+  }
+}
