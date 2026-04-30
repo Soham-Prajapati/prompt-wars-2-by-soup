@@ -1,21 +1,21 @@
 import React from 'react';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
 
 /**
- * A lightweight, zero-dependency Markdown parser for React.
- * Transforms **bold**, *italic*, and lists into semantic HTML.
+ * A professional Markdown parser for React.
+ * Designed for Civic Intelligence outputs.
  */
 export const FormattedText = ({ text }) => {
   if (!text) return null;
 
-  // Handle Budget Limit special case
+  // Budget Limit UI
   if (text.includes("Budget limit reached")) {
     return (
-      <div style={{ background: 'rgba(255, 75, 75, 0.1)', border: '1px solid rgba(255, 75, 75, 0.2)', padding: '16px', borderRadius: '12px', display: 'flex', gap: '12px' }}>
-        <AlertCircle color="#ff4b4b" size={20} style={{ flexShrink: 0 }} />
+      <div style={{ background: '#FEF2F2', border: '1px solid #EF4444', padding: '16px', borderRadius: '12px', display: 'flex', gap: '12px' }}>
+        <AlertCircle color="#EF4444" size={20} style={{ flexShrink: 0 }} />
         <div>
-          <strong style={{ color: '#ff4b4b', display: 'block', marginBottom: '4px' }}>Budget Protection Active</strong>
-          <p style={{ fontSize: '13px', color: 'var(--ink-mid)', margin: 0 }}>{text}</p>
+          <strong style={{ color: '#EF4444', display: 'block', marginBottom: '4px' }}>Budget Protection Active</strong>
+          <p style={{ fontSize: '13px', color: '#7F1D1D', margin: 0 }}>{text}</p>
         </div>
       </div>
     );
@@ -24,50 +24,46 @@ export const FormattedText = ({ text }) => {
   const lines = text.split('\n');
 
   return (
-    <div className="markdown-body">
+    <div className="civic-markdown">
       {lines.map((line, i) => {
         let content = line.trim();
         const key = `line-${i}`;
 
-        if (!content) return <div key={key} style={{ height: '8px' }} />;
-
-        // Dividers
-        if (content === '---' || content === '***') {
-          return <hr key={key} style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.05)', margin: '16px 0' }} />;
-        }
+        if (!content) return <div key={key} style={{ height: '12px' }} />;
 
         // Headers
         if (content.startsWith('### ')) {
-          return <h3 key={key} style={{ fontSize: '18px', fontWeight: 800, color: 'var(--saffron)', margin: '16px 0 8px' }}>{parseInline(content.substring(4))}</h3>;
+          return <h3 key={key} style={{ fontSize: '18px', fontWeight: 900, color: 'var(--ashoka-blue)', margin: '20px 0 10px' }}>{parseInline(content.substring(4))}</h3>;
         }
         if (content.startsWith('## ')) {
-          return <h2 key={key} style={{ fontSize: '20px', fontWeight: 900, color: '#fff', margin: '20px 0 10px' }}>{parseInline(content.substring(3))}</h2>;
+          return <h2 key={key} style={{ fontSize: '22px', fontWeight: 900, color: 'var(--ashoka-blue)', margin: '24px 0 12px', borderBottom: '2px solid var(--border)' }}>{parseInline(content.substring(3))}</h2>;
         }
 
-        // Bullet Points
-        if (content.startsWith('* ') || content.startsWith('- ')) {
+        // List Handling
+        const isBullet = content.startsWith('* ') || content.startsWith('- ');
+        const numMatch = content.match(/^(\d+)\.\s+(.*)/);
+
+        if (isBullet) {
           return (
-            <div key={key} style={{ display: 'flex', gap: '10px', marginBottom: '6px', paddingLeft: '8px' }}>
-              <span style={{ color: 'var(--saffron)', fontWeight: 900, fontSize: '18px', lineHeight: 1 }}>•</span>
-              <span style={{ flex: 1 }}>{parseInline(content.substring(2))}</span>
+            <div key={key} style={{ display: 'flex', gap: '12px', marginBottom: '8px', paddingLeft: '8px' }}>
+              <div style={{ marginTop: '8px', width: '6px', height: '6px', borderRadius: '50%', background: 'var(--eci-saffron)', flexShrink: 0 }} />
+              <div style={{ flex: 1, fontSize: '15px', color: 'var(--text-main)' }}>{parseInline(content.substring(2))}</div>
             </div>
           );
         }
 
-        // Numbered Lists
-        const numMatch = content.match(/^(\d+)\.\s+(.*)/);
         if (numMatch) {
           return (
-            <div key={key} style={{ display: 'flex', gap: '10px', marginBottom: '8px', paddingLeft: '8px' }}>
-              <span style={{ color: 'var(--saffron)', fontWeight: 800, fontSize: '14px' }}>{numMatch[1]}.</span>
-              <span style={{ flex: 1 }}>{parseInline(numMatch[2])}</span>
+            <div key={key} style={{ display: 'flex', gap: '12px', marginBottom: '8px', paddingLeft: '8px' }}>
+              <span style={{ color: 'var(--ashoka-blue)', fontWeight: 900, fontSize: '14px', minWidth: '20px' }}>{numMatch[1]}.</span>
+              <div style={{ flex: 1, fontSize: '15px', color: 'var(--text-main)' }}>{parseInline(numMatch[2])}</div>
             </div>
           );
         }
 
         // Regular Paragraph
         return (
-          <p key={key} style={{ marginBottom: '10px', opacity: 0.9 }}>
+          <p key={key} style={{ marginBottom: '12px', fontSize: '15px', color: 'var(--text-main)', opacity: 0.9 }}>
             {parseInline(line)}
           </p>
         );
@@ -79,23 +75,19 @@ export const FormattedText = ({ text }) => {
 function parseInline(text) {
   if (!text) return '';
   
-  // Handle bold **text**
-  let parts = text.split(/(\*\*.*?\*\*)/g);
+  // Regex to match **bold**, *italic*, and `code`
+  const parts = text.split(/(\*\*.*?\*\*|\*.*?\*|`.*?`)/g);
   
-  let elements = parts.map((part, i) => {
+  return parts.map((part, i) => {
     if (part.startsWith('**') && part.endsWith('**')) {
-      return <strong key={`b-${i}`} style={{ color: '#fff', fontWeight: 800 }}>{part.slice(2, -2)}</strong>;
+      return <strong key={i} style={{ color: 'var(--ashoka-blue)', fontWeight: 800 }}>{part.slice(2, -2)}</strong>;
     }
-    
-    // Handle italic *text* (but not bullets)
-    let subParts = part.split(/(\*.*?\*)/g);
-    return subParts.map((sub, j) => {
-      if (sub.startsWith('*') && sub.endsWith('*')) {
-        return <em key={`i-${i}-${j}`} style={{ color: 'var(--saffron)', fontStyle: 'normal', fontWeight: 600 }}>{sub.slice(1, -1)}</em>;
-      }
-      return sub;
-    });
+    if (part.startsWith('*') && part.endsWith('*')) {
+      return <span key={i} style={{ color: 'var(--eci-saffron)', fontWeight: 600 }}>{part.slice(1, -1)}</span>;
+    }
+    if (part.startsWith('`') && part.endsWith('`')) {
+      return <code key={i} style={{ background: 'var(--bg-aside)', padding: '2px 6px', borderRadius: '4px', fontSize: '0.9em', color: 'var(--ashoka-blue)' }}>{part.slice(1, -1)}</code>;
+    }
+    return part;
   });
-
-  return elements;
 }

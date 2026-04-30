@@ -1,352 +1,186 @@
-import { useState, useEffect } from 'react'
-import { submitReport, getReports } from '../api'
-
-const PARTIES = [
-  'Bharatiya Janata Party (BJP)',
-  'Indian National Congress (INC)',
-  'Aam Aadmi Party (AAP)',
-  'Samajwadi Party (SP)',
-  'Bahujan Samaj Party (BSP)',
-  'Trinamool Congress (TMC)',
-  'Shiv Sena',
-  'Nationalist Congress Party (NCP)',
-  'Communist Party of India (Marxist)',
-  'Telangana Rashtra Samithi (BRS)',
-  'YSR Congress Party',
-  'Dravida Munnetra Kazhagam (DMK)',
-  'Other / Independent',
-]
-
-const CATEGORIES = [
-  { id: 'infrastructure', label: 'Roads & Infrastructure', icon: '🛣️' },
-  { id: 'water',          label: 'Water & Electricity',   icon: '💧' },
-  { id: 'employment',     label: 'Jobs & Employment',     icon: '💼' },
-  { id: 'health',         label: 'Healthcare',            icon: '🏥' },
-  { id: 'education',      label: 'Schools & Education',   icon: '🏫' },
-  { id: 'welfare',        label: 'Welfare Schemes',       icon: '🤝' },
-  { id: 'other',          label: 'Other Promise',         icon: '📋' },
-]
-
-const PRIVACY_POINTS = [
-  { icon: '🗑️', text: 'GPS location data stripped from your photo before upload' },
-  { icon: '🚫', text: 'Your IP address and device info are never stored' },
-  { icon: '👤', text: 'Zero personally identifiable information collected' },
-  { icon: '🔍', text: 'AI + human moderators verify evidence before publishing' },
-  { icon: '⏰', text: 'Report visible to public only after 24-hour review window' },
-]
+import { useEffect, useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { FileText, Plus, ShieldCheck, CheckCircle2, AlertTriangle, Image as ImageIcon, Send, History, Filter } from 'lucide-react'
+import { submitReport, getReports, getPromises, trackEvent } from '../api'
 
 export default function JawaabDoPage() {
-  const [tab, setTab] = useState('feed')
+  const [view, setView] = useState('feed') // 'feed' or 'submit'
   const [reports, setReports] = useState([])
-  const [loadingReports, setLoadingReports] = useState(false)
-  const [safetyRead, setSafetyRead] = useState(false)
-  const [form, setForm] = useState({ claim_text: '', party: '', promise_text: '', category: 'infrastructure', constituency: '' })
-  const [file, setFile] = useState(null)
-  const [filePreview, setFilePreview] = useState(null)
-  const [submitting, setSubmitting] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
-  const [submitError, setSubmitError] = useState(null)
+  const [promises, setPromises] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [formData, setFormData] = useState({ party: 'BJP', claim_text: '', category: 'Infrastructure', promise_id: '' })
+  const [image, setImage] = useState(null)
+  const [status, setStatus] = useState(null)
 
   useEffect(() => {
-    if (tab !== 'feed') return
-    setLoadingReports(true)
-    getReports().then(r => setReports(r || [])).catch(() => setReports([])).finally(() => setLoadingReports(false))
-  }, [tab])
+    trackEvent('page_view', { page: 'accountability' })
+    fetchReports()
+    fetchPromises()
+  }, [])
 
-  const handleFile = (f) => {
-    if (!f) return
-    setFile(f)
-    const reader = new FileReader()
-    reader.onload = e => setFilePreview(e.target.result)
-    reader.readAsDataURL(f)
+  const fetchReports = async () => {
+    try { const res = await getReports(); setReports(res.reports || []) } catch (e) { console.error(e) }
   }
 
-  const handleSubmit = async () => {
-    if (!form.claim_text || !form.party || !form.promise_text) return
-    setSubmitting(true); setSubmitError(null)
+  const fetchPromises = async () => {
+    try { const res = await getPromises(); setPromises(res.promises || []) } catch (e) { console.error(e) }
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setLoading(true); setStatus(null)
     try {
-      const fd = new FormData()
-      fd.append('claim_text', form.claim_text)
-      fd.append('party', form.party)
-      fd.append('category', form.category)
-      fd.append('constituency', form.constituency)
-      fd.append('promise_id', '')
-      if (file) fd.append('image', file)
-      await submitReport(fd)
-      setSubmitted(true)
-    } catch (e) {
-      setSubmitError(e.message || 'Submission failed — please try again.')
-    } finally { setSubmitting(false) }
-  }
-
-  const resetForm = () => {
-    setSubmitted(false); setSafetyRead(false)
-    setForm({ claim_text: '', party: '', promise_text: '', category: 'infrastructure', constituency: '' })
-    setFile(null); setFilePreview(null)
+      const res = await submitReport(formData, image)
+      setStatus({ type: 'success', message: res.message })
+      setFormData({ party: 'BJP', claim_text: '', category: 'Infrastructure', promise_id: '' })
+      setImage(null)
+      setTimeout(() => setView('feed'), 2000)
+      fetchReports()
+    } catch (err) { setStatus({ type: 'error', message: err.message }) }
+    finally { setLoading(false) }
   }
 
   return (
-    <div style={{ maxWidth: 860, margin: '0 auto' }}>
-
-      {/* Header */}
-      <div className="card card-saffron" style={{ padding: '20px 24px', marginBottom: 20, display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-        <div style={{ width: 40, height: 40, borderRadius: 8, background: 'var(--navy)', color: 'white', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, flexShrink: 0 }}>JD</div>
-        <div style={{ flex: 1 }}>
-          <h1 style={{ fontSize: 'var(--size-xl)', fontWeight: 800, color: 'var(--navy)', marginBottom: 4 }}>
-            Jawaab Do — जवाब दो
-          </h1>
-          <p style={{ color: 'var(--ink-mid)', fontSize: 'var(--size-sm)', lineHeight: 1.6 }}>
-            Hold politicians accountable for unfulfilled promises. Submit anonymous, evidence-backed reports.
-            All submissions are AI-verified before publishing. <strong>Your identity is fully protected.</strong>
-          </p>
-        </div>
-        <span className="trust-badge" style={{ flexShrink: 0 }}>100% Anonymous</span>
-      </div>
-
-      {/* Tabs */}
-      <div style={{ display: 'flex', gap: 0, marginBottom: 20, borderBottom: '2px solid var(--border)' }}>
-        {[
-          { id: 'feed', label: 'Verified Reports' },
-          { id: 'submit', label: 'Submit Report' },
-        ].map(t => (
-          <button key={t.id} onClick={() => setTab(t.id)} style={{
-            padding: '11px 22px', border: 'none', background: 'none', cursor: 'pointer',
-            fontWeight: tab === t.id ? 700 : 500,
-            color: tab === t.id ? 'var(--saffron)' : 'var(--ink-mid)',
-            borderBottom: tab === t.id ? '2px solid var(--saffron)' : '2px solid transparent',
-            marginBottom: -2, fontSize: 'var(--size-base)',
-            fontFamily: 'var(--font-body)', transition: 'var(--transition)',
-          }}>{t.label}</button>
-        ))}
-      </div>
-
-      {/* ── Feed tab ── */}
-      {tab === 'feed' && (
+    <div className="app-container" style={{ padding: '60px 0 100px' }}>
+      
+      {/* ── Header ── */}
+      <header style={{ marginBottom: '48px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
         <div>
-          {loadingReports ? (
-            <div className="card" style={{ padding: 32, textAlign: 'center' }}>
-              <div style={{ display: 'flex', justifyContent: 'center', gap: 8 }}>
-                <span className="typing-dot" /><span className="typing-dot" /><span className="typing-dot" />
-              </div>
-              <p style={{ color: 'var(--ink-mid)', marginTop: 12 }}>Loading verified reports…</p>
-            </div>
-          ) : reports.length === 0 ? (
-            <div className="card" style={{ padding: '40px 24px', textAlign: 'center' }}>
-              <div style={{ fontSize: 52, marginBottom: 12 }}>📋</div>
-              <div style={{ fontWeight: 700, fontSize: 'var(--size-md)', color: 'var(--navy)', marginBottom: 6 }}>
-                No verified reports yet
-              </div>
-              <p style={{ color: 'var(--ink-mid)', fontSize: 'var(--size-sm)', maxWidth: 440, margin: '0 auto 20px' }}>
-                Be the first to hold a politician accountable. Submit an evidence-backed report and it will appear here after verification.
-              </p>
-              <button className="btn-primary" onClick={() => setTab('submit')}>
-                Submit First Report
-              </button>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              {reports.map((r, i) => (
-                <div key={i} className="card card-hover" style={{ padding: '18px 22px' }}>
-                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 8, alignItems: 'center' }}>
-                    <span className="badge" style={{ color: 'var(--verified)', fontSize: 12 }}>✅ Verified</span>
-                    <span className="pill pill-inactive" style={{ fontSize: 11 }}>{r.party}</span>
-                    <span className="pill pill-inactive" style={{ fontSize: 11 }}>{r.category}</span>
-                    <span style={{ marginLeft: 'auto', fontSize: 'var(--size-xs)', color: 'var(--ink-light)' }}>
-                      {new Date(r.verified_at || Date.now()).toLocaleDateString('en-IN')}
-                    </span>
-                  </div>
-                  <p style={{ fontWeight: 600, color: 'var(--navy)', marginBottom: 6 }}>Promise: {r.promise_text || 'Not linked to a manifesto line'}</p>
-                  <p style={{ fontSize: 'var(--size-sm)', color: 'var(--ink-mid)', lineHeight: 1.6 }}>{r.claim_text}</p>
-                  {r.constituency && (
-                    <div style={{ fontSize: 'var(--size-xs)', color: 'var(--ink-light)', marginTop: 6 }}>
-                      {r.constituency}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
+           <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--ashoka-blue)', marginBottom: '8px' }}>
+              <FileText size={20} />
+              <span style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '1px' }}>CITIZEN ACCOUNTABILITY PORTAL</span>
+           </div>
+           <h1 style={{ fontSize: '36px', fontWeight: 900 }}>Jawaab Do — जवाब दो</h1>
+           <p style={{ color: 'var(--text-muted)' }}>Anonymous, evidence-backed platform to track political promise fulfillment.</p>
         </div>
-      )}
+        <div style={{ display: 'flex', gap: '8px', background: 'var(--bg-aside)', padding: '6px', borderRadius: '12px', border: '1px solid var(--border)' }}>
+           <button onClick={() => setView('feed')} style={{ padding: '8px 20px', borderRadius: '8px', border: 'none', background: view === 'feed' ? '#fff' : 'transparent', color: view === 'feed' ? 'var(--ashoka-blue)' : 'var(--text-muted)', fontWeight: 700, cursor: 'pointer', boxShadow: view === 'feed' ? 'var(--shadow-sm)' : 'none' }}>
+             <History size={16} style={{ verticalAlign: 'middle', marginRight: 6 }} /> Verified Feed
+           </button>
+           <button onClick={() => setView('submit')} style={{ padding: '8px 20px', borderRadius: '8px', border: 'none', background: view === 'submit' ? '#fff' : 'transparent', color: view === 'submit' ? 'var(--ashoka-blue)' : 'var(--text-muted)', fontWeight: 700, cursor: 'pointer', boxShadow: view === 'submit' ? 'var(--shadow-sm)' : 'none' }}>
+             <Plus size={16} style={{ verticalAlign: 'middle', marginRight: 6 }} /> Submit Report
+           </button>
+        </div>
+      </header>
 
-      {/* ── Submit tab ── */}
-      {tab === 'submit' && (
-        <div>
-          {/* Success */}
-          {submitted ? (
-            <div className="card card-green fade-in" style={{ padding: '40px 28px', textAlign: 'center' }}>
-              <h2 style={{ fontWeight: 800, fontSize: 'var(--size-xl)', color: 'var(--navy)', marginBottom: 8 }}>
-                Report Submitted!
-              </h2>
-              <p style={{ color: 'var(--ink-mid)', maxWidth: 440, margin: '0 auto 24px', fontSize: 'var(--size-base)', lineHeight: 1.65 }}>
-                Your report is under AI + human review. If verified, it will appear publicly within 24 hours. Your identity is permanently protected.
-              </p>
-              <div className="trust-badge" style={{ margin: '0 auto 24px', display: 'inline-flex' }}>Zero trace of your identity</div>
-              <br />
-              <button className="btn-secondary" onClick={resetForm}>Submit Another Report</button>
-            </div>
-          ) : !safetyRead ? (
-            /* Safety briefing */
-            <div className="card" style={{ padding: '24px 28px' }}>
-              <div style={{ fontWeight: 700, fontSize: 'var(--size-md)', color: 'var(--navy)', marginBottom: 6 }}>
-                How we protect you
-              </div>
-              <p style={{ color: 'var(--ink-mid)', fontSize: 'var(--size-sm)', marginBottom: 20, lineHeight: 1.65 }}>
-                Jawaab Do is built for citizen safety. Before you submit, please understand exactly how your privacy is protected:
-              </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>
-                {PRIVACY_POINTS.map((p, i) => (
-                  <div key={i} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', padding: '12px 16px', background: 'var(--surface-3)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
-                    <span style={{ fontSize: 22, flexShrink: 0 }}>{p.icon}</span>
-                    <span style={{ fontSize: 'var(--size-base)', color: 'var(--ink)', lineHeight: 1.5 }}>{p.text}</span>
+      <AnimatePresence mode="wait">
+        {view === 'feed' ? (
+          <motion.section key="feed" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+             {/* Feed Controls */}
+             <div style={{ marginBottom: '32px', display: 'flex', gap: '12px', alignItems: 'center' }}>
+                <Filter size={18} color="var(--text-light)" />
+                <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)' }}>FILTER BY:</span>
+                <select className="gov-input" style={{ width: 'auto', padding: '6px 12px', fontSize: '12px' }}>
+                   <option>All Parties</option>
+                   <option>BJP</option>
+                   <option>INC</option>
+                </select>
+             </div>
+
+             {/* Reports Grid */}
+             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '24px' }}>
+                {reports.length === 0 ? (
+                  <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '100px 0' }}>
+                     <div style={{ opacity: 0.5, marginBottom: '20px' }}><FileText size={48} style={{ margin: '0 auto' }} /></div>
+                     <h3 style={{ color: 'var(--text-muted)' }}>No reports submitted for this area yet.</h3>
                   </div>
-                ))}
-              </div>
-              <div style={{ padding: '14px 18px', background: 'var(--false-bg)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--false)', marginBottom: 20 }}>
-                <p style={{ fontWeight: 700, color: 'var(--false)', marginBottom: 4 }}>Important Warning</p>
-                <p style={{ fontSize: 'var(--size-sm)', color: 'var(--ink-mid)', lineHeight: 1.65 }}>
-                  Do not submit false claims. Deliberate misinformation harms democracy and weakens genuine accountability. 
-                  Fabricated reports will be rejected and may be reported to authorities.
-                </p>
-              </div>
-              <button className="btn-primary" style={{ width: '100%', justifyContent: 'center', padding: 14, fontSize: 'var(--size-md)' }} onClick={() => setSafetyRead(true)}>
-                I Understand - Proceed to Report
-              </button>
-            </div>
-          ) : (
-            /* Form */
-            <div className="card" style={{ padding: '24px 28px' }}>
-              <div style={{ fontWeight: 700, fontSize: 'var(--size-md)', color: 'var(--navy)', marginBottom: 18 }}>
-                Submit Accountability Report
-              </div>
+                ) : (
+                  reports.map(report => (
+                    <motion.article key={report.id} className="gov-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: '11px', fontWeight: 900, color: 'var(--ashoka-blue)', background: 'rgba(0,51,102,0.05)', padding: '4px 10px', borderRadius: '4px' }}>{report.party}</span>
+                          <span style={{ fontSize: '11px', color: 'var(--text-light)', fontWeight: 600 }}>{new Date(report.verified_at).toLocaleDateString()}</span>
+                       </div>
+                       <p style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-main)', lineHeight: 1.5 }}>{report.claim_text}</p>
+                       <div style={{ background: 'var(--bg-aside)', padding: '12px', borderRadius: '8px', borderLeft: '3px solid var(--eci-saffron)' }}>
+                          <p style={{ fontSize: '10px', fontWeight: 800, color: 'var(--eci-saffron)', textTransform: 'uppercase', marginBottom: '4px' }}>Linked Promise</p>
+                          <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{report.promise_text || "General Accountability"}</p>
+                       </div>
+                       <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                             <CheckCircle2 size={14} color="var(--india-green)" />
+                             <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--india-green)' }}>AI VERIFIED {report.ai_confidence}%</span>
+                          </div>
+                          <button className="gov-button gov-button-outline" style={{ fontSize: '11px', padding: '6px 12px' }}>View Evidence</button>
+                       </div>
+                    </motion.article>
+                  ))
+                )}
+             </div>
+          </motion.section>
+        ) : (
+          <motion.section key="submit" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}>
+             <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+                <form onSubmit={handleSubmit} className="gov-card" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                   <div>
+                      <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, color: 'var(--ashoka-blue)', marginBottom: '10px' }}>DESCRIBE THE UNFULFILLED PROMISE</label>
+                      <textarea 
+                        className="gov-input" 
+                        required 
+                        style={{ minHeight: '120px' }}
+                        value={formData.claim_text}
+                        onChange={e => setFormData({...formData, claim_text: e.target.value})}
+                        placeholder="State clearly what was promised and what is the current reality..."
+                      />
+                   </div>
 
-              {submitError && (
-                <div style={{ padding: '12px 16px', background: 'var(--false-bg)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--false)', marginBottom: 16 }}>
-                  <p style={{ color: 'var(--false)', fontWeight: 600, fontSize: 'var(--size-sm)' }}>{submitError}</p>
-                </div>
-              )}
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                {/* Party */}
-                <div>
-                  <label style={{ display: 'block', fontWeight: 600, color: 'var(--navy)', marginBottom: 6, fontSize: 'var(--size-sm)' }}>
-                    Political Party / Leader *
-                  </label>
-                  <select className="input" value={form.party} onChange={e => setForm(f => ({ ...f, party: e.target.value }))}>
-                    <option value="">Select party…</option>
-                    {PARTIES.map(p => <option key={p} value={p}>{p}</option>)}
-                  </select>
-                </div>
-
-                {/* Category */}
-                <div>
-                  <label style={{ display: 'block', fontWeight: 600, color: 'var(--navy)', marginBottom: 6, fontSize: 'var(--size-sm)' }}>
-                    Category of Promise *
-                  </label>
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    {CATEGORIES.map(c => (
-                      <button key={c.id} onClick={() => setForm(f => ({ ...f, category: c.id }))} className={`pill ${form.category === c.id ? 'pill-active' : 'pill-inactive'}`} style={{ fontSize: 'var(--size-sm)', padding: '7px 12px' }}>
-                        {c.icon} {c.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Promise */}
-                <div>
-                  <label style={{ display: 'block', fontWeight: 600, color: 'var(--navy)', marginBottom: 6, fontSize: 'var(--size-sm)' }}>
-                    What was the promise? *
-                  </label>
-                  <input
-                    className="input"
-                    value={form.promise_text}
-                    onChange={e => setForm(f => ({ ...f, promise_text: e.target.value }))}
-                    placeholder="e.g. Promised to build a pucca road by 2023..."
-                  />
-                </div>
-
-                {/* Description */}
-                <div>
-                  <label style={{ display: 'block', fontWeight: 600, color: 'var(--navy)', marginBottom: 6, fontSize: 'var(--size-sm)' }}>
-                    Describe what happened (or didn't) *
-                  </label>
-                  <textarea
-                    className="input"
-                    value={form.claim_text}
-                    onChange={e => setForm(f => ({ ...f, claim_text: e.target.value }))}
-                    placeholder="Explain the broken promise with as much detail as possible. Include dates, area names, what was promised vs reality..."
-                    style={{ minHeight: 120 }}
-                  />
-                </div>
-
-                {/* Location (optional) */}
-                <div>
-                  <label style={{ display: 'block', fontWeight: 600, color: 'var(--navy)', marginBottom: 6, fontSize: 'var(--size-sm)' }}>
-                    Location (optional — village/district/state)
-                  </label>
-                  <input
-                    className="input"
-                    value={form.constituency}
-                    onChange={e => setForm(f => ({ ...f, constituency: e.target.value }))}
-                    placeholder="e.g. Rampur village, Gorakhpur district, Uttar Pradesh"
-                  />
-                </div>
-
-                {/* Photo evidence */}
-                <div>
-                  <label style={{ display: 'block', fontWeight: 600, color: 'var(--navy)', marginBottom: 6, fontSize: 'var(--size-sm)' }}>
-                    Photo Evidence (optional but strongly recommended)
-                  </label>
-                  <div
-                    style={{
-                      border: '2px dashed var(--border)', borderRadius: 'var(--radius-sm)',
-                      padding: '20px', textAlign: 'center', cursor: 'pointer',
-                      background: 'var(--surface-3)', transition: 'var(--transition)',
-                    }}
-                    onClick={() => document.getElementById('evidence-upload').click()}
-                    onDragOver={e => e.preventDefault()}
-                    onDrop={e => { e.preventDefault(); handleFile(e.dataTransfer.files[0]) }}
-                  >
-                    {filePreview ? (
-                      <img src={filePreview} alt="Evidence preview" style={{ maxHeight: 160, borderRadius: 8, maxWidth: '100%' }} />
-                    ) : (
+                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                       <div>
-                        <div style={{ fontSize: 32, marginBottom: 8 }}>IMG</div>
-                        <p style={{ color: 'var(--ink-mid)', fontSize: 'var(--size-sm)' }}>
-                          Click or drag a photo here
-                        </p>
-                        <p style={{ color: 'var(--ink-light)', fontSize: 'var(--size-xs)', marginTop: 4 }}>
-                          GPS metadata is automatically stripped before upload
-                        </p>
+                         <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, color: 'var(--ashoka-blue)', marginBottom: '10px' }}>POLITICAL PARTY</label>
+                         <select className="gov-input" value={formData.party} onChange={e => setFormData({...formData, party: e.target.value})}>
+                            <option>BJP</option>
+                            <option>INC</option>
+                            <option>AAP</option>
+                            <option>SP</option>
+                            <option>TMC</option>
+                         </select>
                       </div>
-                    )}
-                    <input id="evidence-upload" type="file" accept="image/*" style={{ display: 'none' }} onChange={e => handleFile(e.target.files[0])} />
-                  </div>
-                  {file && <p style={{ fontSize: 'var(--size-xs)', color: 'var(--green)', marginTop: 6 }}>Photo selected · EXIF data will be stripped before upload</p>}
-                </div>
+                      <div>
+                         <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, color: 'var(--ashoka-blue)', marginBottom: '10px' }}>CATEGORY</label>
+                         <select className="gov-input" value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}>
+                            <option>Infrastructure</option>
+                            <option>Healthcare</option>
+                            <option>Education</option>
+                            <option>Employment</option>
+                            <option>Welfare</option>
+                         </select>
+                      </div>
+                   </div>
 
-                {/* Anonymous assurance banner */}
-                <div style={{ padding: '12px 16px', background: 'var(--green-bg)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--green-border)', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                  <span style={{ fontSize: 20 }}>ID</span>
-                  <div>
-                    <p style={{ fontWeight: 700, color: 'var(--green)', fontSize: 'var(--size-sm)', marginBottom: 2 }}>Your anonymity is guaranteed</p>
-                    <p style={{ fontSize: 'var(--size-xs)', color: 'var(--ink-mid)' }}>No IP, no name, no location data is stored. This report cannot be traced back to you.</p>
-                  </div>
-                </div>
+                   <div>
+                      <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, color: 'var(--ashoka-blue)', marginBottom: '10px' }}>UPLOAD PHOTO EVIDENCE (OPTIONAL)</label>
+                      <div style={{ border: '2px dashed var(--border)', borderRadius: '12px', padding: '40px', textAlign: 'center', cursor: 'pointer', transition: 'var(--transition)' }} onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--ashoka-blue)'} onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}>
+                         <ImageIcon size={32} color="var(--text-light)" style={{ margin: '0 auto 12px' }} />
+                         <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>{image ? image.name : "Click to select a photo from the location"}</p>
+                         <input type="file" style={{ display: 'none' }} />
+                      </div>
+                   </div>
 
-                <button
-                  className="btn-primary"
-                  style={{ width: '100%', justifyContent: 'center', padding: 14, fontSize: 'var(--size-md)' }}
-                  onClick={handleSubmit}
-                  disabled={submitting || !form.claim_text || !form.party || !form.promise_text}
-                >
-                  {submitting ? 'Submitting securely...' : 'Submit Anonymous Report'}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+                   <div style={{ background: 'var(--bg-aside)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                      <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                         <ShieldCheck size={20} color="var(--india-green)" style={{ flexShrink: 0 }} />
+                         <div>
+                            <p style={{ fontSize: '13px', fontWeight: 800, color: 'var(--india-green)', marginBottom: '4px' }}>PRIVACY GUARANTEE</p>
+                            <p style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.5 }}>Your submission is 100% anonymous. We strip all EXIF metadata from photos and never store your IP address or identity. Gemini AI will verify your evidence before it appears on the public feed.</p>
+                         </div>
+                      </div>
+                   </div>
+
+                   {status && (
+                     <div style={{ padding: '16px', borderRadius: '8px', background: status.type === 'success' ? 'rgba(5,106,62,0.1)' : 'rgba(239,68,68,0.1)', color: status.type === 'success' ? 'var(--india-green)' : '#ef4444', fontWeight: 700, fontSize: '14px' }}>
+                        {status.message}
+                     </div>
+                   )}
+
+                   <button type="submit" disabled={loading || !formData.claim_text} className="gov-button gov-button-accent" style={{ padding: '16px', justifyContent: 'center', fontSize: '16px', fontWeight: 900 }}>
+                      {loading ? 'ANALYSING & ANONYMIZING...' : <><Send size={18} /> SUBMIT ANONYMOUS REPORT</>}
+                   </button>
+                </form>
+             </div>
+          </motion.section>
+        )}
+      </AnimatePresence>
+
     </div>
   )
 }

@@ -1,127 +1,174 @@
-/* ── ElectIQ Banger UI Design System ── */
-/* Theme: Dark Mode Glassmorphism Premium */
+/* ── ElectIQ Gov-Tech Design System — Production Standard ── */
+/* Theme: High-Contrast Civic Light Mode */
 
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Noto+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans:wght@400;500;600;700&display=swap');
 
 :root {
-  --saffron:        #FF9933;
-  --saffron-bg:     rgba(255, 153, 51, 0.1);
-  --saffron-border: rgba(255, 153, 51, 0.3);
-  --green:          #1DB954;
-  --green-bg:       rgba(29, 185, 84, 0.1);
-  --navy:           #FFFFFF;
-  --surface-2:      #0B0D14; /* Deep space background */
-  --surface:        #151821;
-  --surface-3:      rgba(255, 255, 255, 0.03);
-  --ink:            #E4E7EB;
-  --ink-mid:        #B0B7C3;
-  --ink-light:      #7A849C;
-  --border:         rgba(255, 255, 255, 0.1);
-  --radius:         16px;
-  --transition:     all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --font-body:      'Outfit', sans-serif;
+  /* Official Palette */
+  --ashoka-blue:    #003366;   /* Main Govt Identity */
+  --eci-saffron:    #E87722;   /* Action / Highlight */
+  --india-green:    #056A3E;   /* Success / Verified */
+  --flag-white:     #FFFFFF;
+  
+  /* UI Foundation */
+  --bg-main:        #F8FAFC;   /* Soft slate-white background */
+  --bg-card:        #FFFFFF;
+  --bg-aside:       #F1F5F9;
+  
+  /* Text System */
+  --text-main:      #0F172A;   /* Near black for readability */
+  --text-muted:     #475569;
+  --text-light:     #94A3B8;
+  
+  /* Borders & Shadows */
+  --border:         #E2E8F0;
+  --border-strong:  #CBD5E1;
+  --radius:         12px;
+  --radius-sm:      8px;
+  --shadow-sm:      0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md:      0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+  
+  /* Transitions */
+  --transition:     0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --font-body:      'Inter', 'Noto Sans', sans-serif;
 }
 
-/* ── Global Reset ── */
+/* ── Reset & Base ── */
 * { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
 body {
   font-family: var(--font-body);
-  background-color: var(--surface-2);
-  color: var(--ink);
+  background-color: var(--bg-main);
+  color: var(--text-main);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
 }
 
-h1, h2, h3, h4 { font-weight: 800; letter-spacing: -0.02em; color: #fff; }
+h1, h2, h3, h4 { color: var(--ashoka-blue); font-weight: 800; letter-spacing: -0.02em; }
 
 /* ── Layout ── */
 .app-shell { min-height: 100vh; display: flex; flex-direction: column; }
-.app-container { max-width: 1200px; margin: 0 auto; width: 100%; padding: 0 20px; }
+.app-container { max-width: 1200px; margin: 0 auto; width: 100%; padding: 0 24px; }
 
-/* ── Utility Classes (Banger UI) ── */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+/* ── Gov-Tech Components ── */
+
+.gov-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
-}
-
-.hero-gradient {
-  background: linear-gradient(to right, var(--saffron), #fff, var(--green));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.glow-button {
-  background: var(--saffron);
-  color: #fff;
-  padding: 12px 24px;
-  border-radius: 12px;
-  font-weight: 700;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  box-shadow: 0 4px 15px rgba(232, 119, 34, 0.3);
+  box-shadow: var(--shadow-sm);
+  padding: 24px;
   transition: var(--transition);
+}
+
+.gov-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow-md); }
+
+.gov-button {
+  background: var(--ashoka-blue);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 14px;
   border: none;
   cursor: pointer;
-}
-
-.glow-button:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(232, 119, 34, 0.5); }
-
-.glow-button-secondary {
-  background: rgba(255,255,255,0.05);
-  color: #fff;
-  padding: 12px 24px;
-  border-radius: 12px;
-  font-weight: 600;
-  text-decoration: none;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  border: 1px solid rgba(255,255,255,0.1);
+  text-decoration: none;
   transition: var(--transition);
-  cursor: pointer;
 }
 
-.glow-button-secondary:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
+.gov-button:hover { background: #002244; transform: translateY(-1px); }
 
-/* ── Components ── */
-input {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
+.gov-button-accent {
+  background: var(--eci-saffron);
+}
+
+.gov-button-accent:hover { background: #CC6611; }
+
+.gov-button-outline {
+  background: transparent;
+  color: var(--ashoka-blue);
+  border: 1px solid var(--ashoka-blue);
+}
+
+.gov-button-outline:hover { background: rgba(0, 51, 102, 0.05); }
+
+/* ── Forms ── */
+.gov-input {
+  width: 100%;
   padding: 12px 16px;
-  color: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
   font-family: inherit;
+  font-size: 15px;
+  color: var(--text-main);
   outline: none;
   transition: var(--transition);
 }
 
-input:focus { border-color: var(--saffron); background: rgba(255, 255, 255, 0.08); }
+.gov-input:focus { border-color: var(--ashoka-blue); box-shadow: 0 0 0 4px rgba(0, 51, 102, 0.1); }
 
-.pill {
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 700;
-  border: none;
-  cursor: pointer;
+/* ── Navigation ── */
+.app-header {
+  background: #fff;
+  border-bottom: 2px solid var(--ashoka-blue);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: var(--shadow-md);
+}
+
+.nav-link {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 8px 12px;
+  border-radius: 6px;
   transition: var(--transition);
 }
 
-.feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
-.feature-card { padding: 32px; transition: var(--transition); }
-.feature-card:hover { border-color: var(--saffron-border); background: rgba(255, 255, 255, 0.05); }
+.nav-link:hover { color: var(--ashoka-blue); background: rgba(0, 51, 102, 0.05); }
+.nav-link-active { color: var(--ashoka-blue); background: rgba(0, 51, 102, 0.08); position: relative; }
+.nav-link-active::after { content: ''; position: absolute; bottom: -14px; left: 0; right: 0; height: 3px; background: var(--eci-saffron); }
 
-/* ── Animations ── */
-.fade-in { animation: fadeIn 0.4s ease-out; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+/* ── Typography Helpers ── */
+.section-title { font-size: 36px; margin-bottom: 12px; color: var(--ashoka-blue); }
+.section-subtitle { color: var(--text-muted); font-size: 18px; font-weight: 400; }
 
-/* ── Specific Overrides for "Stock" look ── */
-.app-header { background: rgba(11, 13, 20, 0.8) !important; border-bottom: 1px solid rgba(255,255,255,0.05) !important; }
-.section-title { font-size: 48px; line-height: 1.1; margin-bottom: 16px; }
-.section-subtitle { color: var(--ink-mid); font-size: 18px; max-width: 600px; }
+/* ── Custom Utilities ── */
+.pill-active { background: var(--ashoka-blue); color: #fff; }
+.pill-inactive { background: #fff; color: var(--text-muted); border: 1px solid var(--border); }
+
+/* Scrollbars */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-main); }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-light); }
+
+/* ── Responsive Navbar & Utilities ── */
+.desktop-nav { display: none; }
+.mobile-menu-btn { display: block; }
+
+@media (min-width: 768px) {
+  .desktop-nav { display: flex; }
+  .mobile-menu-btn { display: none !important; }
+}
+
+.map-container {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+.map-state {
+  stroke: #ffffff;
+  stroke-width: 1;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+.map-state:hover {
+  opacity: 0.8;
+  stroke-width: 2;
+}
