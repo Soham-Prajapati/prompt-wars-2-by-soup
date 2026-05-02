@@ -1,24 +1,51 @@
 import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
-import { Calendar, MapPin, Users, Vote, Trophy, ChevronRight, Info, CheckCircle2, Clock } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Calendar, MapPin, Users, Vote, Trophy, ChevronRight, Info, CheckCircle2, Clock, AlertTriangle, RefreshCcw } from 'lucide-react'
 import { getTimeline, trackEvent } from '../api'
 
 export default function TimelinePage() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  const fetchData = async () => {
+    setLoading(true); setError(null)
+    try { 
+      const res = await getTimeline()
+      if (!res || !res.phases) throw new Error("Malformed data received from server.")
+      setData(res) 
+    } catch (err) { 
+      console.error("Timeline load failed:", err)
+      setError(err.message || "Failed to load timeline data.")
+    } finally { 
+      setLoading(false) 
+    }
+  }
 
   useEffect(() => {
     trackEvent('page_view', { page: 'timeline' })
-    const fetch = async () => {
-      try { const res = await getTimeline(); setData(res) } 
-      finally { setLoading(false) }
-    }
-    fetch()
+    fetchData()
   }, [])
 
   if (loading) return (
     <div style={{ height: '80vh', display: 'grid', placeItems: 'center' }}>
-       <div style={{ width: '40px', height: '40px', border: '4px solid var(--border)', borderTopColor: 'var(--ashoka-blue)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+       <div style={{ textAlign: 'center' }}>
+          <div style={{ width: '40px', height: '40px', border: '4px solid var(--border)', borderTopColor: 'var(--ashoka-blue)', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 20px' }} />
+          <p style={{ fontWeight: 600, color: 'var(--text-muted)' }}>Retrieving election schedule...</p>
+       </div>
+    </div>
+  )
+
+  if (error) return (
+    <div style={{ height: '80vh', display: 'grid', placeItems: 'center' }}>
+       <div className="gov-card" style={{ maxWidth: '400px', textAlign: 'center', padding: '40px', borderTop: '4px solid #ef4444' }}>
+          <AlertTriangle size={48} color="#ef4444" style={{ margin: '0 auto 20px' }} />
+          <h2 style={{ fontSize: '20px', fontWeight: 900, marginBottom: '12px' }}>Loading Error</h2>
+          <p style={{ color: 'var(--text-muted)', marginBottom: '32px', fontSize: '14px' }}>{error}</p>
+          <button className="gov-button" onClick={fetchData}>
+            <RefreshCcw size={16} /> Retry Connection
+          </button>
+       </div>
     </div>
   )
 
@@ -59,7 +86,6 @@ export default function TimelinePage() {
               viewport={{ once: true }}
               style={{ position: 'relative' }}
             >
-              {/* Node */}
               <div style={{ 
                 position: 'absolute', left: '-30px', top: '0', width: '20px', height: '20px', borderRadius: '50%', 
                 background: phase.isResult ? 'var(--india-green)' : (i === 0 ? 'var(--eci-saffron)' : '#fff'),

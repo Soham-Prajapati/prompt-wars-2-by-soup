@@ -12,7 +12,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
-from app.api import chat, accountability, analytics, bots
+from app.api import chat, accountability, analytics, bots, civic_data
 from app.services.analytics_service import analytics_service
 from app.services.gcp_service import gcp_service
 from app.models import schemas
@@ -58,6 +58,7 @@ app.include_router(chat.router, tags=["AI"])
 app.include_router(accountability.router, tags=["Civic"])
 app.include_router(analytics.router, tags=["Ops"])
 app.include_router(bots.router, tags=["Bots"])
+app.include_router(civic_data.router, tags=["Civic Data"])
 
 from app.services.usage_limiter import usage_limiter
 

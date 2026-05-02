@@ -10,6 +10,7 @@
     "test:smoke": "playwright test"
   },
   "dependencies": {
+    "@vis.gl/react-google-maps": "^1.8.3",
     "d3-scale": "^4.0.2",
     "framer-motion": "^11.15.0",
     "lucide-react": "^0.468.0",

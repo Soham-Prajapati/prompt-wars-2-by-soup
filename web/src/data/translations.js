@@ -1,0 +1,80 @@
+export const UI_TRANSLATIONS = {
+  'English': {
+    brand_sub: 'Democracy Infrastructure',
+    nav_home: 'Home',
+    nav_dash: 'Dashboard',
+    nav_assistant: 'Civic Assistant',
+    nav_map: 'Election Map',
+    nav_verifier: 'Verifier',
+    nav_timeline: 'Timeline',
+    nav_accountability: 'Accountability',
+    hero_title: 'Understanding your vote',
+    hero_subtitle: 'starts here.',
+    hero_desc: 'ElectIQ is a neutral, multilingual platform designed to educate every Indian citizen on the democratic process.',
+    btn_learning: 'Start Learning',
+    btn_dashboard: 'Explore Dashboard',
+    know_constituency: 'Know Your Constituency',
+    search_placeholder: 'Enter your constituency or state...',
+    civic_assistant: 'Civic Assistant',
+    fact_verifier: 'Fact Verifier',
+    voting_simulator: 'Voting Simulator',
+    launch: 'Launch Assistant',
+    check_claim: 'Check a Claim',
+    try_simulator: 'Try Simulator',
+    official_portal: 'Official Civic Intelligence Portal'
+  },
+  'Hindi': {
+    brand_sub: 'लोकतंत्र अवसंरचना',
+    nav_home: 'होम',
+    nav_dash: 'डैशबोर्ड',
+    nav_assistant: 'नागरिक सहायक',
+    nav_map: 'चुनाव मानचित्र',
+    nav_verifier: 'सत्यापक',
+    nav_timeline: 'समयरेखा',
+    nav_accountability: 'जवाबदेही',
+    hero_title: 'अपने वोट को',
+    hero_subtitle: 'यहाँ समझें।',
+    hero_desc: 'ElectIQ एक निष्पक्ष, बहुभाषी मंच है जिसे हर भारतीय नागरिक को लोकतांत्रिक प्रक्रिया पर शिक्षित करने के लिए डिज़ाइन किया गया है।',
+    btn_learning: 'सीखना शुरू करें',
+    btn_dashboard: 'डैशबोर्ड देखें',
+    know_constituency: 'अपना निर्वाचन क्षेत्र जानें',
+    search_placeholder: 'अपना निर्वाचन क्षेत्र या राज्य दर्ज करें...',
+    civic_assistant: 'नागरिक सहायक',
+    fact_verifier: 'तथ्य सत्यापक',
+    voting_simulator: 'मतदान सिम्युलेटर',
+    launch: 'सहायक शुरू करें',
+    check_claim: 'दावे की जाँच करें',
+    try_simulator: 'सिम्युलेटर आज़माएं',
+    official_portal: 'आधिकारिक नागरिक खुफिया पोर्टल'
+  },
+  'Marathi': {
+    brand_sub: 'लोकशाही पायाभूत सुविधा',
+    nav_home: 'होम',
+    nav_dash: 'डैशबोर्ड',
+    nav_assistant: 'नागरिक सहाय्यक',
+    nav_map: 'निवडणूक नकाशा',
+    nav_verifier: 'सत्यापक',
+    nav_timeline: 'वेळापत्रक',
+    nav_accountability: 'जबाबदारी',
+    hero_title: 'तुमचे मत',
+    hero_subtitle: 'येथे समजून घ्या.',
+    hero_desc: 'ElectIQ हे एक निष्पक्ष, बहुभाषिक व्यासपीठ आहे जे प्रत्येक भारतीय नागरिकाला लोकशाही प्रक्रियेबद्दल शिक्षित करण्यासाठी तयार केले आहे.',
+    btn_learning: 'शिकण्यास सुरुवात करा',
+    btn_dashboard: 'डॅशबोर्ड पहा',
+    know_constituency: 'तुमचा मतदारसंघ जाणून घ्या',
+    search_placeholder: 'तुमचा मतदारसंघ किंवा राज्य प्रविष्ट करा...',
+    civic_assistant: 'नागरिक सहाय्यक',
+    fact_verifier: 'तथ्य सत्यापक',
+    voting_simulator: 'मतदान सिम्युलेटर',
+    launch: 'सहाय्यक सुरू करा',
+    check_claim: 'दाव्याची तपासणी करा',
+    try_simulator: 'सिम्युलेटर वापरून पहा',
+    official_portal: 'अधिकृत नागरी बुद्धिमत्ता पोर्टल'
+  }
+  // ... more languages can be added similarly
+};
+
+export const t = (key, language) => {
+  const lang = UI_TRANSLATIONS[language] || UI_TRANSLATIONS['English'];
+  return lang[key] || UI_TRANSLATIONS['English'][key] || key;
+};

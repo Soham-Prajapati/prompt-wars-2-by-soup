@@ -142,11 +142,23 @@ h1, h2, h3, h4 { color: var(--ashoka-blue); font-weight: 800; letter-spacing: -0
 .pill-active { background: var(--ashoka-blue); color: #fff; }
 .pill-inactive { background: #fff; color: var(--text-muted); border: 1px solid var(--border); }
 
-/* Scrollbars */
-::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: var(--bg-main); }
-::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: var(--text-light); }
+/* ── Utilities ── */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--ashoka-blue);
+  color: white;
+  padding: 8px;
+  z-index: 100;
+  transition: top 0.2s;
+}
+.skip-link:focus { top: 0; }
+
+.custom-scrollbar::-webkit-scrollbar { width: 6px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 10px; }
+
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
 /* ── Responsive Navbar & Utilities ── */
 .desktop-nav { display: none; }
