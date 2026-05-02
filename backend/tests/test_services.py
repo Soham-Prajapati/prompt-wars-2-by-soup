@@ -108,8 +108,13 @@ class AnalyticsServiceTests(unittest.TestCase):
         self.assertIn("page_view", summary["event_types"])
 
     def test_get_summary_empty(self):
-        summary = self.svc.get_summary()
-        self.assertEqual(summary["events_recorded"], 0)
+        # Mock the BQ query to prevent actual connection attempt
+        with patch.object(self.svc.client, "query") as mock_query:
+            mock_job = MagicMock()
+            mock_job.result.return_value = iter([])
+            mock_query.return_value = mock_job
+            summary = self.svc.get_summary()
+            self.assertEqual(summary["events_recorded"], 0)
 
     def test_event_types_are_unique(self):
         for _ in range(5):
