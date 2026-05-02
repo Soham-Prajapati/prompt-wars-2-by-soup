@@ -1,15 +1,20 @@
 """
-ElectIQ FastAPI Backend — AI-powered India Election Intelligence Platform
+ElectIQ FastAPI Backend — AI-powered India Election Intelligence Platform.
+
+Entrypoint for the production API deployed on Google Cloud Run.
 GCP Project: prompt-wars-2-by-soup
 """
 import json
 import logging
 import os
 import re
+import uuid
 from contextlib import asynccontextmanager
+from typing import Any, AsyncGenerator, Dict, List
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
@@ -36,6 +41,7 @@ gemini_model = ai_service.model
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
+
 def get_gemini_key() -> str:
     """Return the active Gemini API key (env preferred, then Secret Manager)."""
     env_key = os.environ.get("GEMINI_API_KEY")
@@ -46,11 +52,13 @@ def get_gemini_key() -> str:
 
 # ── App Lifecycle ─────────────────────────────────────────────────────────────
 
+
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    """Initialise shared state on startup; clean up on shutdown."""
     global gemini_model
     gemini_model = ai_service.model
-    logger.info(f"ElectIQ API starting — GCP project: {gcp_service.project_id}")
+    logger.info("ElectIQ API starting — GCP project: %s", gcp_service.project_id)
     yield
     logger.info("ElectIQ API shutting down")
 
@@ -62,15 +70,17 @@ limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(
     title="ElectIQ API",
     description="AI-powered India Election Intelligence Platform",
-    version="1.2.0",
+    version="2.0.0",
     lifespan=lifespan,
 )
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-ALLOWED_ORIGINS = [o.strip() for o in os.environ.get("CORS_ALLOW_ORIGINS", "*").split(",")]
-_wildcard_cors = ALLOWED_ORIGINS == ["*"]
+ALLOWED_ORIGINS: List[str] = [
+    o.strip() for o in os.environ.get("CORS_ALLOW_ORIGINS", "*").split(",")
+]
+_wildcard_cors: bool = ALLOWED_ORIGINS == ["*"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
@@ -81,18 +91,51 @@ app.add_middleware(
 )
 
 
+# ── Content-Security-Policy value ────────────────────────────────────────────
+
+_CSP = "; ".join([
+    "default-src 'self'",
+    "script-src 'self'",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com",
+    "img-src 'self' data: https:",
+    "connect-src 'self' https:",
+    "frame-ancestors 'none'",
+])
+
+
 @app.middleware("http")
-async def add_security_headers(request: Request, call_next):
-    """Inject security headers on every response."""
+async def add_security_headers(request: Request, call_next: Any) -> Any:
+    """Inject security and tracing headers on every response."""
     response = await call_next(request)
+    # ── Security headers ──────────────────────────────────────────────────
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-    response.headers["Cache-Control"] = "no-store" if request.url.path.startswith("/analytics") else "no-cache"
+    response.headers["Content-Security-Policy"] = _CSP
+    # ── Cache control ─────────────────────────────────────────────────────
+    response.headers["Cache-Control"] = (
+        "no-store" if request.url.path.startswith("/analytics") else "no-cache"
+    )
+    # ── Request tracing ───────────────────────────────────────────────────
+    request_id: str = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+    response.headers["X-Request-ID"] = request_id
     return response
+
+
+# ── Global 404 handler ────────────────────────────────────────────────────────
+
+@app.exception_handler(404)
+async def not_found_handler(request: Request, exc: Any) -> JSONResponse:
+    """Return JSON (not HTML) for unknown routes."""
+    return JSONResponse(
+        status_code=404,
+        content={"detail": "Not found", "path": str(request.url.path)},
+    )
+
 
 # ── Routers ───────────────────────────────────────────────────────────────────
 
@@ -105,12 +148,14 @@ app.include_router(civic_data.router, tags=["Civic Data"])
 
 # ── Core Endpoints ────────────────────────────────────────────────────────────
 
+
 @app.get("/")
-async def root():
+async def root() -> Dict[str, Any]:
+    """Root endpoint — product metadata and service inventory."""
     return {
         "product": "ElectIQ",
         "status": "Production-Ready",
-        "version": "1.2.0",
+        "version": "2.0.0",
         "google_services": [
             "Secret Manager", "BigQuery", "Pub/Sub",
             "Cloud Storage", "Vision AI", "Gemini 2.5 Flash",
@@ -120,9 +165,9 @@ async def root():
 
 
 @app.get("/health")
-async def health():
+async def health() -> Dict[str, Any]:
     """Health check endpoint — returns AI and GCP readiness status."""
-    bq_table = (
+    bq_table: str = (
         f"{gcp_service.project_id}.electiq_analytics.events"
         if gcp_service.project_id
         else "not_configured"
@@ -137,15 +182,15 @@ async def health():
 
 
 @app.get("/google-services/status")
-async def google_services_status():
+async def google_services_status() -> Dict[str, Any]:
     """Live status of all integrated Google Cloud services."""
     try:
         import google.generativeai  # noqa: F401
-        sdk_installed = True
+        sdk_installed: bool = True
     except ImportError:
         sdk_installed = False
 
-    project_ok = gcp_service.project_id is not None
+    project_ok: bool = gcp_service.project_id is not None
     return {
         "gemini": {
             "sdk_installed": sdk_installed,
@@ -174,41 +219,65 @@ async def google_services_status():
 
 
 @app.get("/google-services/live-proof")
-async def google_services_live_proof():
+async def google_services_live_proof() -> Dict[str, Any]:
     """Demonstrate live integration with all Google Cloud services (evidence endpoint)."""
-    project_ok = gcp_service.project_id is not None
-    event_count = len(analytics_service._events_mem)
+    project_ok: bool = gcp_service.project_id is not None
+    event_count: int = len(analytics_service._events_mem)
 
-    services = [
+    services: List[Dict[str, str]] = [
         {
             "name": "Gemini 2.5 Flash (Vertex AI)",
             "status": "active" if gemini_model is not None else "not_configured",
-            "evidence": f"Model loaded in project {gcp_service.project_id}" if gemini_model else "GOOGLE_CLOUD_PROJECT not set",
+            "evidence": (
+                f"Model loaded in project {gcp_service.project_id}"
+                if gemini_model
+                else "GOOGLE_CLOUD_PROJECT not set"
+            ),
         },
         {
             "name": "BigQuery Analytics",
             "status": "active" if project_ok else "not_configured",
-            "evidence": f"{gcp_service.project_id}.electiq_analytics.events" if project_ok else "project not set",
+            "evidence": (
+                f"{gcp_service.project_id}.electiq_analytics.events"
+                if project_ok
+                else "project not set"
+            ),
         },
         {
             "name": "Cloud Pub/Sub",
             "status": "active" if project_ok else "not_configured",
-            "evidence": "accountability_report_submitted topic" if project_ok else "project not set",
+            "evidence": (
+                "accountability_report_submitted topic"
+                if project_ok
+                else "project not set"
+            ),
         },
         {
             "name": "Cloud Storage",
             "status": "active" if project_ok else "not_configured",
-            "evidence": f"{gcp_service.project_id}-evidence bucket" if project_ok else "project not set",
+            "evidence": (
+                f"{gcp_service.project_id}-evidence bucket"
+                if project_ok
+                else "project not set"
+            ),
         },
         {
             "name": "Vision AI",
             "status": "active" if project_ok else "not_configured",
-            "evidence": "Safe-search detection on evidence images" if project_ok else "project not set",
+            "evidence": (
+                "Safe-search detection on evidence images"
+                if project_ok
+                else "project not set"
+            ),
         },
         {
             "name": "Secret Manager",
             "status": "active" if project_ok else "not_configured",
-            "evidence": "GEMINI_API_KEY stored in Secret Manager" if project_ok else "project not set",
+            "evidence": (
+                "GEMINI_API_KEY stored in Secret Manager"
+                if project_ok
+                else "project not set"
+            ),
         },
         {
             "name": "Analytics (In-Memory + BigQuery)",
@@ -227,29 +296,29 @@ async def google_services_live_proof():
 
 
 @app.get("/budget/status")
-async def get_budget_status():
+async def get_budget_status() -> Dict[str, Any]:
     """Current AI request budget usage."""
     return usage_limiter.get_status()
 
 
 @app.post("/analytics/event")
 @limiter.limit("60/minute")
-async def track_event(request: Request, body: schemas.AnalyticsEvent):
+async def track_event(request: Request, body: schemas.AnalyticsEvent) -> Dict[str, bool]:
     """Record a frontend analytics event."""
     analytics_service.write_event(body.event_name, body.session_id, body.page, body.props)
     return {"ok": True}
 
 
 @app.get("/analytics/summary")
-async def analytics_summary():
+async def analytics_summary() -> Dict[str, Any]:
     """Analytics event summary (in-memory first, BigQuery fallback)."""
     return analytics_service.get_summary()
 
 
 @app.post("/factcheck")
-async def factcheck(body: schemas.FactCheckRequest):
+async def factcheck(body: schemas.FactCheckRequest) -> Dict[str, Any]:
     """Fact-check a claim using Gemini + ECI knowledge base."""
-    fallback = {
+    fallback: Dict[str, Any] = {
         "overall_verdict": "UNVERIFIABLE",
         "confidence": 0,
         "sources_consulted": ["ECI Official Website", "PIB", "Factcheck.in"],
@@ -276,15 +345,15 @@ Respond in JSON only:
 }}"""
 
     try:
-        response_text = ai_service.generate_content(prompt)
+        response_text: str = ai_service.generate_content(prompt)
         json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
         if json_match:
-            result = json.loads(json_match.group())
+            result: Dict[str, Any] = json.loads(json_match.group())
             result.setdefault("sources_consulted", sources or ["ECI Official Website"])
             result["language"] = body.language
             return result
     except Exception as e:
-        logger.error(f"Fact-check error: {e}")
+        logger.error("Fact-check error: %s", e)
 
     fallback["sources_consulted"] = sources or fallback["sources_consulted"]
     return fallback

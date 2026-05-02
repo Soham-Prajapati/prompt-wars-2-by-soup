@@ -18,7 +18,7 @@ If you are looking for the actual app code, use this map:
     - `/constituency/:slug` constituency detail
     - `/compare` candidate compare
     - `/chat`, `/fact-check`, `/learn`, `/timeline`, `/quiz`, `/evm-simulator`, `/jawaab-do`
-- **Backend services (in progress):** `backend/`
+- **Backend services (production-ready):** `backend/`
 - **Planning and UX artifacts:** `_bmad-output/`
 - **BMAD workflows/config:** `_bmad/`
 - **Supporting docs:** `docs/`
@@ -44,9 +44,11 @@ Then open the local Vite URL shown in the terminal.
 - CI gate workflow: `.github/workflows/ci-gate.yml`
 - Browser smoke tests: `web/tests/smoke.spec.js` (Playwright)
 - Backend unit tests: `backend/tests/test_api.py` (unittest)
-- Local secret audit script: `scripts/secret-audit.sh`
-- Google services runtime status endpoint: `GET /google-services/status`
-- Public-repo secret safety:
+- Backend integration tests: `backend/tests/test_extended.py` (pytest)
+- Backend security tests: `backend/tests/test_security.py` (pytest)
+- Backend knowledge base tests: `backend/tests/test_knowledge_base.py` (pytest)
+- Backend translation tests: `backend/tests/test_translation.py` (pytest)
+- Backend GCP service tests: `backend/tests/test_gcp_services.py` (pytest)
   - Real keys stay in Secret Manager / Cloud Run env only
   - `.env` files are ignored by git
   - `.env.example` contains placeholders only

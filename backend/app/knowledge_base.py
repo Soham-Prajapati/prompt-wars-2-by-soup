@@ -2,9 +2,10 @@
 ElectIQ Knowledge Base — 500+ ECI facts with BM25 retrieval
 No external DB required for demo. Swap with pgvector for production.
 """
-from rank_bm25 import BM25Okapi
-from typing import List, Tuple
 import re
+from typing import Any, Dict, List, Tuple
+
+from rank_bm25 import BM25Okapi
 
 ECI_CORPUS = [
     # === ELECTION BASICS ===
@@ -91,21 +92,37 @@ ECI_CORPUS = [
 
 
 class KnowledgeBase:
-    """BM25-based retrieval over ECI corpus."""
+    """BM25-based retrieval engine over the ECI knowledge corpus.
 
-    def __init__(self):
-        self.documents = ECI_CORPUS
-        tokenized = [self._tokenize(d["text"]) for d in self.documents]
-        self.bm25 = BM25Okapi(tokenized)
+    Provides keyword-scored document retrieval using the Okapi BM25
+    ranking function.  Designed as a self-contained, zero-dependency
+    (no external DB) retrieval layer for the demo.  Replace with
+    ``pgvector`` or Vertex AI Search for production scale.
+    """
+
+    def __init__(self) -> None:
+        self.documents: List[Dict[str, Any]] = ECI_CORPUS
+        tokenized: List[List[str]] = [self._tokenize(d["text"]) for d in self.documents]
+        self.bm25: BM25Okapi = BM25Okapi(tokenized)
 
     def _tokenize(self, text: str) -> List[str]:
+        """Normalise and split text into lowercase alphanumeric tokens."""
         return re.sub(r"[^a-zA-Z0-9\s]", " ", text.lower()).split()
 
-    def retrieve(self, query: str, top_k: int = 5) -> List[dict]:
-        tokens = self._tokenize(query)
+    def retrieve(self, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
+        """Return the *top_k* most relevant documents for *query*.
+
+        Args:
+            query: Free-text search query.
+            top_k: Maximum number of results to return.
+
+        Returns:
+            List of document dicts, each augmented with a ``relevance_score``.
+        """
+        tokens: List[str] = self._tokenize(query)
         scores = self.bm25.get_scores(tokens)
         ranked = sorted(enumerate(scores), key=lambda x: x[1], reverse=True)
-        results = []
+        results: List[Dict[str, Any]] = []
         for idx, score in ranked[:top_k]:
             if score > 0:
                 doc = self.documents[idx].copy()
@@ -114,11 +131,21 @@ class KnowledgeBase:
         return results
 
     def get_context(self, query: str, top_k: int = 5) -> Tuple[str, List[str]]:
-        docs = self.retrieve(query, top_k)
+        """Retrieve context and source citations for a user query.
+
+        Args:
+            query: Free-text search query.
+            top_k: Maximum number of context chunks.
+
+        Returns:
+            A ``(context_string, sources_list)`` tuple.  The context string
+            is pre-formatted for injection into an LLM prompt.
+        """
+        docs: List[Dict[str, Any]] = self.retrieve(query, top_k)
         if not docs:
             return "", []
-        context = "\n\n".join([f"[{d['source']}]\n{d['text']}" for d in docs])
-        sources = list(set([d["source"] for d in docs]))
+        context: str = "\n\n".join([f"[{d['source']}]\n{d['text']}" for d in docs])
+        sources: List[str] = list(set([d["source"] for d in docs]))
         return context, sources
 
 

@@ -273,3 +273,117 @@ class TestPromisesFiltering:
         assert resp.status_code == 200
         for p in resp.json()["promises"]:
             assert p["category"] == "Infrastructure"
+
+    def test_promises_combined_party_and_category(self, client):
+        resp = client.get("/accountability/promises?party=BJP&category=Infrastructure")
+        assert resp.status_code == 200
+        for p in resp.json()["promises"]:
+            assert p["party"] == "BJP"
+            assert p["category"] == "Infrastructure"
+
+
+# ── Image Upload Validation ───────────────────────────────────────────────────
+
+class TestImageUploadValidation:
+    """Evidence image upload must enforce MIME and size constraints."""
+
+    @patch("app.api.accountability.ai_service")
+    @patch("app.api.accountability.pubsub_service")
+    def test_rejects_unsupported_mime_type(self, mock_pubsub, mock_ai, client):
+        mock_ai.generate_content.return_value = '{"score": 50, "verdict": "REVIEW", "reason": "test"}'
+        mock_pubsub.publish_event.return_value = None
+
+        resp = client.post(
+            "/accountability/submit",
+            data={
+                "claim_text": "This is a sufficiently long claim for testing purposes",
+                "party": "BJP",
+                "category": "Infrastructure",
+            },
+            files={"image": ("test.txt", b"not an image", "text/plain")},
+        )
+        assert resp.status_code == 415
+
+    @patch("app.api.accountability.ai_service")
+    @patch("app.api.accountability.pubsub_service")
+    def test_rejects_oversized_image(self, mock_pubsub, mock_ai, client):
+        mock_ai.generate_content.return_value = '{"score": 50, "verdict": "REVIEW", "reason": "test"}'
+        mock_pubsub.publish_event.return_value = None
+
+        # 6 MB > 5 MB limit
+        oversized = b"\x00" * (6 * 1024 * 1024)
+        resp = client.post(
+            "/accountability/submit",
+            data={
+                "claim_text": "This is a sufficiently long claim for testing purposes",
+                "party": "BJP",
+                "category": "Infrastructure",
+            },
+            files={"image": ("big.jpg", oversized, "image/jpeg")},
+        )
+        assert resp.status_code == 413
+
+
+# ── Schema Edge Cases ─────────────────────────────────────────────────────────
+
+class TestSchemaEdgeCases:
+    """Boundary conditions on schema validators."""
+
+    def test_chat_rejects_invalid_expertise_level(self, client):
+        resp = client.post(
+            "/chat",
+            json={
+                "query": "Test query",
+                "language": "English",
+                "expertise_level": "grandmaster",
+                "conversation_history": [],
+            },
+        )
+        assert resp.status_code == 422
+
+    def test_factcheck_accepts_minimum_length(self, client):
+        main.gemini_model = None
+        resp = client.post(
+            "/factcheck",
+            json={"text": "12345", "language": "English"},
+        )
+        # 5 chars = min_length, should accept
+        assert resp.status_code == 200
+
+    def test_analytics_event_accepts_valid_name(self, client):
+        resp = client.post(
+            "/analytics/event",
+            json={
+                "event_name": "valid_event_123",
+                "session_id": "sess_ok",
+                "page": "/",
+                "props": {},
+            },
+        )
+        assert resp.status_code == 200
+
+    def test_factcheck_rejects_missing_text_field(self, client):
+        resp = client.post("/factcheck", json={"language": "English"})
+        assert resp.status_code == 422
+
+
+# ── Endpoint Response Shapes ─────────────────────────────────────────────────
+
+class TestResponseShapes:
+    """All endpoints must return expected field shapes."""
+
+    def test_root_has_product_field(self, client):
+        body = client.get("/").json()
+        assert body["product"] == "ElectIQ"
+        assert body["status"] == "Production-Ready"
+
+    def test_health_has_all_fields(self, client):
+        body = client.get("/health").json()
+        required = {"status", "project", "google_project", "ai_ready", "analytics_bigquery_table"}
+        assert required.issubset(set(body.keys()))
+
+    def test_google_services_status_has_all_services(self, client):
+        body = client.get("/google-services/status").json()
+        expected_keys = {"gemini", "bigquery", "secret_manager", "cloud_storage", "vision_ai", "pubsub"}
+        assert expected_keys.issubset(set(body.keys()))
+

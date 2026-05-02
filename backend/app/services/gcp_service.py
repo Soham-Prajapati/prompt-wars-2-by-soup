@@ -1,53 +1,81 @@
-import os
+"""
+GCP Service — Centralised Google Cloud Platform client factory.
+
+Provides lazy-initialised singleton clients for all GCP services used by
+ElectIQ: Secret Manager, BigQuery, Vision AI, Pub/Sub, and Cloud Storage.
+Clients are created on first access to avoid cold-start overhead when a
+service is not needed by a particular request.
+"""
 import logging
-from typing import Optional
-from google.cloud import secretmanager, bigquery, vision, pubsub_v1, storage
+import os
+from typing import Any, Optional
+
+from google.cloud import bigquery, pubsub_v1, secretmanager, storage, vision
 
 logger = logging.getLogger(__name__)
 
+
 class GCPService:
-    """Base service for managing Google Cloud Platform client initializations."""
-    
-    def __init__(self):
-        self.project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
-        self._secret_client = None
-        self._bigquery_client = None
-        self._vision_client = None
-        self._pubsub_publisher = None
-        self._storage_client = None
+    """Lazy-initialised factory for Google Cloud Platform service clients."""
+
+    def __init__(self) -> None:
+        self.project_id: Optional[str] = os.environ.get("GOOGLE_CLOUD_PROJECT")
+        self._secret_client: Optional[secretmanager.SecretManagerServiceClient] = None
+        self._bigquery_client: Optional[bigquery.Client] = None
+        self._vision_client: Optional[vision.ImageAnnotatorClient] = None
+        self._pubsub_publisher: Optional[pubsub_v1.PublisherClient] = None
+        self._storage_client: Optional[storage.Client] = None
+
+    # ── Lazy Properties ───────────────────────────────────────────────────────
 
     @property
-    def secret_client(self):
+    def secret_client(self) -> secretmanager.SecretManagerServiceClient:
+        """Return the Secret Manager client, creating it on first access."""
         if not self._secret_client:
             self._secret_client = secretmanager.SecretManagerServiceClient()
         return self._secret_client
 
     @property
-    def bigquery_client(self):
+    def bigquery_client(self) -> bigquery.Client:
+        """Return the BigQuery client, creating it on first access."""
         if not self._bigquery_client:
             self._bigquery_client = bigquery.Client(project=self.project_id)
         return self._bigquery_client
 
     @property
-    def vision_client(self):
+    def vision_client(self) -> vision.ImageAnnotatorClient:
+        """Return the Vision AI client, creating it on first access."""
         if not self._vision_client:
             self._vision_client = vision.ImageAnnotatorClient()
         return self._vision_client
 
     @property
-    def pubsub_publisher(self):
+    def pubsub_publisher(self) -> pubsub_v1.PublisherClient:
+        """Return the Pub/Sub publisher client, creating it on first access."""
         if not self._pubsub_publisher:
             self._pubsub_publisher = pubsub_v1.PublisherClient()
         return self._pubsub_publisher
 
     @property
-    def storage_client(self):
+    def storage_client(self) -> storage.Client:
+        """Return the Cloud Storage client, creating it on first access."""
         if not self._storage_client:
             self._storage_client = storage.Client(project=self.project_id)
         return self._storage_client
 
+    # ── Secret Access ─────────────────────────────────────────────────────────
+
     def get_secret(self, secret_id: str, version_id: str = "latest") -> Optional[str]:
-        """Fetch a secret from Secret Manager."""
+        """Fetch a secret value from Google Cloud Secret Manager.
+
+        Args:
+            secret_id: The secret name (e.g. ``GEMINI_API_KEY``).
+            version_id: The version to access (default ``latest``).
+
+        Returns:
+            The decoded secret string, or ``None`` if the project is not
+            configured or the lookup fails.
+        """
         if not self.project_id:
             return None
         try:
@@ -55,7 +83,8 @@ class GCPService:
             response = self.secret_client.access_secret_version(request={"name": name})
             return response.payload.data.decode("UTF-8").strip()
         except Exception as e:
-            logger.warning(f"Failed to fetch secret {secret_id}: {e}")
+            logger.warning("Failed to fetch secret %s: %s", secret_id, e)
             return None
+
 
 gcp_service = GCPService()
