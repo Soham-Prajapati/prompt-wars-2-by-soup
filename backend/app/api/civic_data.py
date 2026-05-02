@@ -1,10 +1,19 @@
+"""
+Civic Data API — Timeline, EVM data, and voter quiz endpoints.
+
+Serves structured civic data about Indian elections to the frontend.
+All data sourced from ECI (Election Commission of India) official publications.
+"""
+from typing import Any, Dict, List
+
 from fastapi import APIRouter
-from datetime import datetime, timezone
 
 router = APIRouter()
 
+
 @router.get("/timeline")
-async def get_timeline():
+async def get_timeline() -> Dict[str, Any]:
+    """Return the full 2024 Lok Sabha election timeline with all 7 phases and key stats."""
     return {
         "election": "18th Lok Sabha General Election 2024",
         "current_phase": "Post-Election",
@@ -28,11 +37,13 @@ async def get_timeline():
             "constituencies": 543,
             "candidates": 8360,
             "polling_stations": "1.04 million",
-        }
+        },
     }
 
+
 @router.get("/evm-data")
-async def get_evm_data():
+async def get_evm_data() -> Dict[str, Any]:
+    """Return EVM simulator data for the Varanasi constituency."""
     return {
         "constituency": "Varanasi (UP-72)",
         "election": "Lok Sabha 2024",
@@ -50,5 +61,56 @@ async def get_evm_data():
             "Your vote is encrypted and cannot be traced back to you",
             "The VVPAT slip will be visible for 7 seconds to confirm your vote",
             "The indelible ink ensures you can only vote once",
-        ]
+        ],
+    }
+
+
+@router.get("/quiz")
+async def get_quiz() -> Dict[str, Any]:
+    """Return a set of civic awareness quiz questions with answers and explanations."""
+    return {
+        "title": "Voter Awareness Quiz",
+        "description": "Test your knowledge about Indian elections and democracy",
+        "questions": [
+            {
+                "id": 1,
+                "question": "What does EVM stand for?",
+                "options": ["Electronic Voting Machine", "Electoral Verification Module", "Election Vote Manager", "Electronic Vote Monitor"],
+                "correct": 0,
+                "explanation": "EVM stands for Electronic Voting Machine. It consists of two parts: the Control Unit and the Balloting Unit.",
+                "source": "ECI Technical Manual",
+            },
+            {
+                "id": 2,
+                "question": "How many Lok Sabha seats are there in India?",
+                "options": ["500", "543", "545", "552"],
+                "correct": 1,
+                "explanation": "The Lok Sabha has 543 constituencies. A party needs 272 seats for a simple majority.",
+                "source": "Constitution of India, Article 81",
+            },
+            {
+                "id": 3,
+                "question": "What is the minimum voting age in India?",
+                "options": ["16 years", "18 years", "21 years", "25 years"],
+                "correct": 1,
+                "explanation": "The voting age was lowered from 21 to 18 by the 61st Constitutional Amendment Act, 1988.",
+                "source": "61st Constitutional Amendment 1988",
+            },
+            {
+                "id": 4,
+                "question": "What does NOTA stand for?",
+                "options": ["Not On The Agenda", "None Of The Above", "No Other Than Applicable", "National Option for Transparent Accountability"],
+                "correct": 1,
+                "explanation": "NOTA was introduced following the Supreme Court order in PUCL vs Union of India (2013).",
+                "source": "Supreme Court Order 2013",
+            },
+            {
+                "id": 5,
+                "question": "When was the first general election in India held?",
+                "options": ["1947-48", "1949-50", "1951-52", "1955-56"],
+                "correct": 2,
+                "explanation": "India's first general election was held from October 1951 to February 1952. Nehru's Congress won 364 of 489 seats.",
+                "source": "ECI Historical Records",
+            },
+        ],
     }

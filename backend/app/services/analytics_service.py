@@ -1,23 +1,45 @@
+"""
+Analytics Service — Event recording backed by BigQuery with in-memory fallback.
+
+Events are always stored in-memory first (for reliable unit testing and
+fast summary retrieval) and persisted to BigQuery as a durable backup
+when a GCP project is configured.
+"""
 import json
 import logging
 from datetime import datetime, timezone
+from typing import Any, Dict, List
+
 from .gcp_service import gcp_service
 
 logger = logging.getLogger(__name__)
 
 
 class AnalyticsService:
-    """Analytics service backed by BigQuery with in-memory fallback for tests."""
+    """Analytics service with dual in-memory + BigQuery storage."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.client = gcp_service.bigquery_client
-        self.dataset = "electiq_analytics"
-        self.table = "events"
-        # In-memory store used as primary source for summary (BigQuery as durable backup).
-        self._events_mem: list = []
+        self.dataset: str = "electiq_analytics"
+        self.table: str = "events"
+        # In-memory store — primary source for summary (BigQuery as durable backup).
+        self._events_mem: List[Dict[str, Any]] = []
 
-    def write_event(self, event_name: str, session_id: str, page: str, props: dict) -> None:
-        """Record an analytics event (in-memory + BigQuery)."""
+    def write_event(
+        self,
+        event_name: str,
+        session_id: str,
+        page: str,
+        props: Dict[str, Any],
+    ) -> None:
+        """Record an analytics event (in-memory + BigQuery).
+
+        Args:
+            event_name: Event identifier (e.g. 'page_view', 'chat_start').
+            session_id: Client session identifier.
+            page: Page path where the event occurred.
+            props: Arbitrary event properties.
+        """
         self._events_mem.append({
             "event_name": event_name,
             "session_id": session_id,
@@ -41,14 +63,19 @@ class AnalyticsService:
             }
             errors = self.client.insert_rows_json(table_id, [row])
             if errors:
-                logger.warning(f"BigQuery insert errors: {errors}")
+                logger.warning("BigQuery insert errors: %s", errors)
         except Exception as e:
-            logger.warning(f"BigQuery write failed: {e}")
+            logger.warning("BigQuery write failed: %s", e)
 
-    def get_summary(self) -> dict:
-        """Return analytics summary, preferring in-memory data when available."""
+    def get_summary(self) -> Dict[str, Any]:
+        """Return analytics summary, preferring in-memory data when available.
+
+        Returns:
+            Dict with ``events_recorded`` (int) and ``event_types`` (list of
+            unique event names).
+        """
         if self._events_mem:
-            event_types = list({e["event_name"] for e in self._events_mem})
+            event_types: List[str] = list({e["event_name"] for e in self._events_mem})
             return {
                 "events_recorded": len(self._events_mem),
                 "event_types": event_types,
@@ -68,14 +95,14 @@ class AnalyticsService:
             results = query_job.result()
 
             total = 0
-            event_types = []
+            event_types_bq: List[str] = []
             for row in results:
                 total += row.count
-                event_types.append(row.event_name)
+                event_types_bq.append(row.event_name)
 
-            return {"events_recorded": total, "event_types": event_types}
+            return {"events_recorded": total, "event_types": event_types_bq}
         except Exception as e:
-            logger.warning(f"BigQuery read failed: {e}")
+            logger.warning("BigQuery read failed: %s", e)
             return {"events_recorded": 0, "event_types": [], "error": str(e)}
 
 

@@ -1,21 +1,10 @@
+"""
+Analytics API router.
+
+Exposes analytics endpoints that are part of the Ops tag group.
+Core analytics endpoints (/analytics/event, /analytics/summary) are defined in main.py
+since they depend on the app-level rate limiter and shared state.
+"""
 from fastapi import APIRouter
-from app.services.analytics_service import analytics_service
 
 router = APIRouter()
-
-
-@router.get("/google-services/live-proof")
-async def get_live_proof():
-    """Proof of live Google Cloud service integration for scoring."""
-    return {
-        "status": "integrated",
-        "services": {
-            "bigquery": "active",
-            "pubsub": "active",
-            "cloud_storage": "active",
-            "vision_ai": "active",
-            "gemini_api": "active",
-            "secret_manager": "active",
-        },
-        "evidence": "Events are written to BigQuery and published to Pub/Sub on every request.",
-    }
