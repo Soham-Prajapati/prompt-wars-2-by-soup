@@ -5,7 +5,7 @@ Every public endpoint deserialises its body through one of these models.
 Field constraints (``min_length``, ``max_length``, ``pattern``) enforce
 server-side validation before any business logic executes.
 """
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 

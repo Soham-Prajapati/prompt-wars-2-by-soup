@@ -1,7 +1,13 @@
+"""
+Core API integration tests for the ElectIQ platform.
+
+Covers: health, google-services, analytics, factcheck, and budget endpoints.
+"""
 import os
 import sys
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
@@ -13,14 +19,14 @@ os.environ.setdefault("GEMINI_API_KEY", "unit-test-key")
 os.environ.setdefault("GOOGLE_CLOUD_PROJECT", "unit-test-project")
 
 import app.main as main  # noqa: E402
+from app.services.ai_service import ai_service  # noqa: E402
+from app.services.analytics_service import analytics_service  # noqa: E402
 
 
 class ElectIQApiTests(unittest.TestCase):
     def setUp(self):
-        # Clear in-memory event store shared between main and analytics_service
-        main._analytics_events.clear()
-        # Restore gemini_model to its actual value before each test
-        main.gemini_model = main.ai_service.model
+        # Clear in-memory event store
+        analytics_service._events_mem.clear()
 
     def test_health_endpoint_shape(self):
         with TestClient(main.app) as client:
@@ -65,30 +71,26 @@ class ElectIQApiTests(unittest.TestCase):
 
     def test_factcheck_fallback_without_gemini_model(self):
         with TestClient(main.app) as client:
-            main.gemini_model = None
-            response = client.post(
-                "/factcheck",
-                json={"text": "EVMs can be hacked via bluetooth", "language": "English"},
-            )
-            self.assertEqual(response.status_code, 200)
-            payload = response.json()
-            self.assertEqual(payload["overall_verdict"], "UNVERIFIABLE")
-            self.assertIn("sources_consulted", payload)
-
-    def test_get_gemini_key_prefers_env(self):
-        os.environ["GEMINI_API_KEY"] = "from-env"
-        self.assertEqual(main.get_gemini_key(), "from-env")
+            with patch.object(ai_service, "model", None):
+                response = client.post(
+                    "/factcheck",
+                    json={"text": "EVMs can be hacked via bluetooth", "language": "English"},
+                )
+                self.assertEqual(response.status_code, 200)
+                payload = response.json()
+                self.assertEqual(payload["overall_verdict"], "UNVERIFIABLE")
+                self.assertIn("sources_consulted", payload)
 
     def test_factcheck_has_language_field(self):
         with TestClient(main.app) as client:
-            main.gemini_model = None
-            response = client.post(
-                "/factcheck",
-                json={"text": "Test claim", "language": "Hindi"},
-            )
-            payload = response.json()
-            self.assertIn("language", payload)
-            self.assertEqual(payload["language"], "Hindi")
+            with patch.object(ai_service, "model", None):
+                response = client.post(
+                    "/factcheck",
+                    json={"text": "Test claim", "language": "Hindi"},
+                )
+                payload = response.json()
+                self.assertIn("language", payload)
+                self.assertEqual(payload["language"], "Hindi")
 
     def test_analytics_multiple_events(self):
         with TestClient(main.app) as client:

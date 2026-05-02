@@ -4,7 +4,7 @@ Civic Data API — Timeline, EVM data, and voter quiz endpoints.
 Serves structured civic data about Indian elections to the frontend.
 All data sourced from ECI (Election Commission of India) official publications.
 """
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from fastapi import APIRouter
 

@@ -8,7 +8,6 @@ import sys
 import uuid
 from pathlib import Path
 
-import pytest
 
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
 if str(BACKEND_ROOT) not in sys.path:
@@ -17,7 +16,6 @@ if str(BACKEND_ROOT) not in sys.path:
 os.environ.setdefault("GEMINI_API_KEY", "unit-test-key")
 os.environ.setdefault("GOOGLE_CLOUD_PROJECT", "unit-test-project")
 
-import app.main as main  # noqa: E402
 
 
 class TestContentSecurityPolicy:

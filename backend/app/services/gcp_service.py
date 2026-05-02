@@ -8,7 +8,7 @@ service is not needed by a particular request.
 """
 import logging
 import os
-from typing import Any, Optional
+from typing import Optional
 
 from google.cloud import bigquery, pubsub_v1, secretmanager, storage, vision
 

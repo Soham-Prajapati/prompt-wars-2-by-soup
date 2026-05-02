@@ -18,15 +18,14 @@ os.environ.setdefault("GEMINI_API_KEY", "unit-test-key")
 os.environ.setdefault("GOOGLE_CLOUD_PROJECT", "unit-test-project")
 
 import app.main as main  # noqa: E402
+from app.services.analytics_service import analytics_service  # noqa: E402
 
 
 @pytest.fixture()
 def client():
     """Provide a TestClient with clean analytics state for each test."""
-    main._analytics_events.clear()
-    main.gemini_model = main.ai_service.model
+    analytics_service._events_mem.clear()
     with TestClient(main.app) as c:
         yield c
     # Cleanup after test
-    main._analytics_events.clear()
-    main.gemini_model = main.ai_service.model
+    analytics_service._events_mem.clear()

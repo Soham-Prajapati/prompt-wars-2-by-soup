@@ -7,9 +7,8 @@ Uses the shared `client` fixture from conftest.py.
 import os
 import sys
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
-import pytest
 
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
 if str(BACKEND_ROOT) not in sys.path:
@@ -18,7 +17,7 @@ if str(BACKEND_ROOT) not in sys.path:
 os.environ.setdefault("GEMINI_API_KEY", "unit-test-key")
 os.environ.setdefault("GOOGLE_CLOUD_PROJECT", "unit-test-project")
 
-import app.main as main  # noqa: E402
+from app.services.ai_service import ai_service  # noqa: E402
 
 
 # ── Security Headers ──────────────────────────────────────────────────────────
@@ -342,13 +341,13 @@ class TestSchemaEdgeCases:
         assert resp.status_code == 422
 
     def test_factcheck_accepts_minimum_length(self, client):
-        main.gemini_model = None
-        resp = client.post(
-            "/factcheck",
-            json={"text": "12345", "language": "English"},
-        )
-        # 5 chars = min_length, should accept
-        assert resp.status_code == 200
+        with patch.object(ai_service, "model", None):
+            resp = client.post(
+                "/factcheck",
+                json={"text": "12345", "language": "English"},
+            )
+            # 5 chars = min_length, should accept
+            assert resp.status_code == 200
 
     def test_analytics_event_accepts_valid_name(self, client):
         resp = client.post(

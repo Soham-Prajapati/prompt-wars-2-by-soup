@@ -14,6 +14,8 @@
 
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 PROJECT="prompt-wars-2-by-soup"
 REGION="asia-south1"  # Mumbai — best for Indian users
 API_SERVICE="electiq-api"
@@ -68,7 +70,7 @@ echo "✅ IAM binding set"
 # ─── 3. Deploy Backend ───────────────────────────────────────────────────────
 echo ""
 echo "🐍 Deploying ElectIQ Backend to Cloud Run ($REGION)..."
-cd "$(dirname "$0")/../backend"
+cd "$SCRIPT_DIR/backend"
 
 gcloud run deploy "$API_SERVICE" \
   --source . \
@@ -90,13 +92,13 @@ echo "✅ Backend deployed: $API_URL"
 # ─── 4. Build and Deploy Web Frontend ────────────────────────────────────────
 echo ""
 echo "⚛️  Building Web Frontend..."
-cd "$(dirname "$0")/../web"
+cd "$SCRIPT_DIR/web"
 
 # Inject backend URL into build
 VITE_API_URL="$API_URL" npm run build
 
 echo "🌐 Deploying Web Frontend to Cloud Run..."
-cat > Dockerfile.web << 'DOCKERFILE'
+cat > Dockerfile << 'DOCKERFILE'
 FROM nginx:alpine
 COPY dist/ /usr/share/nginx/html/
 COPY nginx.conf /etc/nginx/conf.d/default.conf
@@ -117,9 +119,14 @@ server {
 }
 NGINX
 
+cat > .gcloudignore << 'IGNORE'
+.git
+.gitignore
+node_modules/
+IGNORE
+
 gcloud run deploy "$WEB_SERVICE" \
   --source . \
-  --dockerfile Dockerfile.web \
   --region "$REGION" \
   --platform managed \
   --allow-unauthenticated \

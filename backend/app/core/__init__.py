@@ -1,1 +1,1 @@
-"""Core utilities and shared configuration for the ElectIQ backend."""
+"""Core application infrastructure — config, security, and exceptions."""

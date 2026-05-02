@@ -1,1 +1,1 @@
-"""ElectIQ Service Layer — GCP integrations, AI, analytics, and utility services."""
+"""Service layer — business logic and GCP client integrations."""

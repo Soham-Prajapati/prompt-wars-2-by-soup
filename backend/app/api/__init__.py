@@ -1,1 +1,1 @@
-# API package initialization
+"""API routers for the ElectIQ platform."""

@@ -12,7 +12,7 @@ if str(BACKEND_ROOT) not in sys.path:
 os.environ.setdefault("GEMINI_API_KEY", "unit-test-key")
 os.environ.setdefault("GOOGLE_CLOUD_PROJECT", "unit-test-project")
 
-from app.services.translation_service import TranslationService, _LANGUAGE_MAP
+from app.services.translation_service import TranslationService, _LANGUAGE_MAP  # noqa: E402
 
 
 class TestLanguageMap:
