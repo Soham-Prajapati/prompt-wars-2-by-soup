@@ -38,10 +38,7 @@ async def telegram_webhook(request: Request):
             "text": ai_response
         })
 
-        # In production, we'd call the Telegram send_message API here.
-        # requests.post(f"https://api.telegram.org/bot{TOKEN}/sendMessage", json={"chat_id": chat_id, "text": ai_response})
-
-        return {"status": "success", "message": "Reply queued"}
+        return {"status": "success", "message": "Reply queued via Pub/Sub"}
     except Exception as e:
         logger.error(f"Telegram webhook failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))

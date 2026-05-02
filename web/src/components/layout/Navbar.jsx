@@ -59,12 +59,15 @@ export default function Navbar() {
            
            {/* Language Dropdown */}
            <div style={{ position: 'relative' }}>
-              <button 
+              <button
                 onClick={() => setLangOpen(!langOpen)}
-                className="gov-button gov-button-outline" 
+                className="gov-button gov-button-outline"
                 style={{ padding: '6px 10px', fontSize: '11px', gap: '4px', height: '34px' }}
+                aria-label={`Select language, current: ${language}`}
+                aria-expanded={langOpen}
+                aria-haspopup="listbox"
               >
-                <Globe size={14} /> {language} <ChevronDown size={12} />
+                <Globe size={14} aria-hidden="true" /> {language} <ChevronDown size={12} aria-hidden="true" />
               </button>
               
               <AnimatePresence>
@@ -79,10 +82,14 @@ export default function Navbar() {
                       width: '180px', maxHeight: '250px', overflowY: 'auto', padding: '6px',
                       boxShadow: 'var(--shadow-md)'
                     }}
+                  role="listbox"
+                  aria-label="Select language"
                   >
                     {LANGUAGES.map(l => (
                       <button
                         key={l}
+                        role="option"
+                        aria-selected={language === l}
                         onClick={() => { setLanguage(l); setLangOpen(false); }}
                         style={{ 
                           width: '100%', padding: '8px 12px', textAlign: 'left', background: 'transparent', border: 'none',
@@ -103,9 +110,12 @@ export default function Navbar() {
            <button
             className="mobile-menu-btn"
             onClick={() => setMenuOpen(!menuOpen)}
+            aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            aria-expanded={menuOpen}
+            aria-controls="mobile-nav"
             style={{ background: 'transparent', border: 'none', color: 'var(--ashoka-blue)', cursor: 'pointer' }}
           >
-            {menuOpen ? <X size={24} /> : <Menu size={24} />}
+            {menuOpen ? <X size={24} aria-hidden="true" /> : <Menu size={24} aria-hidden="true" />}
           </button>
         </div>
       </div>
@@ -113,10 +123,12 @@ export default function Navbar() {
       {/* Mobile Menu Overlay */}
       <AnimatePresence>
         {menuOpen && (
-          <motion.nav 
+          <motion.nav
+            id="mobile-nav"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
+            aria-label="Mobile navigation"
             style={{ background: '#fff', borderBottom: '2px solid var(--ashoka-blue)', padding: '10px 20px', overflow: 'hidden' }}
           >
             {NAV_ITEMS.map(item => (
