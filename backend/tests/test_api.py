@@ -17,7 +17,10 @@ import app.main as main  # noqa: E402
 
 class ElectIQApiTests(unittest.TestCase):
     def setUp(self):
+        # Clear in-memory event store shared between main and analytics_service
         main._analytics_events.clear()
+        # Restore gemini_model to its actual value before each test
+        main.gemini_model = main.ai_service.model
 
     def test_health_endpoint_shape(self):
         with TestClient(main.app) as client:
@@ -75,6 +78,44 @@ class ElectIQApiTests(unittest.TestCase):
     def test_get_gemini_key_prefers_env(self):
         os.environ["GEMINI_API_KEY"] = "from-env"
         self.assertEqual(main.get_gemini_key(), "from-env")
+
+    def test_factcheck_has_language_field(self):
+        with TestClient(main.app) as client:
+            main.gemini_model = None
+            response = client.post(
+                "/factcheck",
+                json={"text": "Test claim", "language": "Hindi"},
+            )
+            payload = response.json()
+            self.assertIn("language", payload)
+            self.assertEqual(payload["language"], "Hindi")
+
+    def test_analytics_multiple_events(self):
+        with TestClient(main.app) as client:
+            for event_name in ["event_a", "event_b", "event_a"]:
+                client.post(
+                    "/analytics/event",
+                    json={"event_name": event_name, "session_id": "sess_x", "page": "/", "props": {}},
+                )
+            summary = client.get("/analytics/summary").json()
+            self.assertEqual(summary["events_recorded"], 3)
+            self.assertIn("event_a", summary["event_types"])
+            self.assertIn("event_b", summary["event_types"])
+            # event_types should be deduplicated
+            self.assertEqual(summary["event_types"].count("event_a"), 1)
+
+    def test_health_ai_ready_field_is_bool(self):
+        with TestClient(main.app) as client:
+            payload = client.get("/health").json()
+            self.assertIsInstance(payload["ai_ready"], bool)
+
+    def test_budget_status_fields(self):
+        with TestClient(main.app) as client:
+            payload = client.get("/budget/status").json()
+            self.assertIn("current", payload)
+            self.assertIn("limit", payload)
+            self.assertIn("remaining", payload)
+            self.assertGreaterEqual(payload["remaining"], 0)
 
 
 if __name__ == "__main__":

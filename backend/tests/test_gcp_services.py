@@ -35,11 +35,15 @@ def test_pubsub_publish(mock_gcp_clients):
     assert pubsub_service.publisher.publish.called
 
 def test_storage_upload(mock_gcp_clients):
+    mock_client = MagicMock()
     mock_bucket = MagicMock()
     mock_blob = MagicMock()
-    storage_service.client.bucket.return_value = mock_bucket
+
+    # storage_service.client is set at __init__ time, so patch it directly
+    storage_service.client = mock_client
+    mock_client.bucket.return_value = mock_bucket
     mock_bucket.blob.return_value = mock_blob
-    
+
     url = storage_service.upload_file(b"test content", "test.jpg")
     assert mock_blob.upload_from_string.called
     assert "test.jpg" in url

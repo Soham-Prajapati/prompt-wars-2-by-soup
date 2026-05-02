@@ -3,10 +3,6 @@ from app.services.analytics_service import analytics_service
 
 router = APIRouter()
 
-@router.get("/analytics/summary")
-async def get_summary():
-    """Live summary from BigQuery."""
-    return analytics_service.get_summary()
 
 @router.get("/google-services/live-proof")
 async def get_live_proof():
@@ -19,7 +15,7 @@ async def get_live_proof():
             "cloud_storage": "active",
             "vision_ai": "active",
             "gemini_api": "active",
-            "secret_manager": "active"
+            "secret_manager": "active",
         },
-        "evidence": "Data is queried live from BQ and events are published to Pub/Sub."
+        "evidence": "Events are written to BigQuery and published to Pub/Sub on every request.",
     }
